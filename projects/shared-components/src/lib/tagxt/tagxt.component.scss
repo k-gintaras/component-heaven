@@ -1,0 +1,45 @@
+.tagxt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: Arial, sans-serif; /* Modern, minimal font */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease-in-out,
+    color 0.2s ease-in-out;
+}
+
+.tagxt .tagxt-text {
+  max-width: 100px; /* Controlled width */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tagxt .tagxt-remove {
+  margin-left: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.tagxt .tagxt-remove:hover {
+  color: #f00;
+}
+
+.tagxt.selected {
+  background-color: #007bff;
+  color: white;
+  border: black 1px solid;
+}

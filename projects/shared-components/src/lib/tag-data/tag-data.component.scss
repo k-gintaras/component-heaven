@@ -1,0 +1,46 @@
+.tabs {
+  display: flex;
+  gap: 0;
+  overflow: hidden; /* Hide overflowing tabs */
+}
+
+.tab {
+  flex-shrink: 0; /* Prevent tabs from shrinking */
+  flex-grow: 1; /* Ensure tabs evenly distribute space */
+  text-align: center; /* Center-align tab text */
+  padding: 2px;
+}
+
+.tab-active {
+  border-radius: 10px 10px 0% 0%;
+  border-top: 1px solid grey;
+  border-right: 1px solid grey;
+  border-bottom: none; /* Explicitly remove the bottom border */
+  border-left: 1px solid grey;
+  font-weight: bold;
+}
+
+.tab-inactive {
+  border-radius: 0%;
+  border-top: none;
+  border-right: none;
+  border-bottom: 1px solid white; /* Default light bottom border */
+  border-left: none;
+}
+
+.tab-processed {
+  border-bottom: 1px solid black; /* Black bottom border for processed tabs */
+}
+
+/* Ensure .tab-active overrides .tab-processed */
+.tab-active.tab-processed {
+  border-bottom: none; /* Remove bottom border for active processed tabs */
+}
+
+.badge-active {
+  margin-top: 10px;
+}
+
+.badge-inactive {
+  opacity: 0.7;
+}

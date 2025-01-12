@@ -1,0 +1,129 @@
+/* General Layout */
+.layout {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  max-width: 100%;
+  margin: 0 auto;
+  border: 1px solid grey;
+}
+
+/* Top Panel (Navigation or Summary) */
+.top-panel {
+  flex: 1; /* Refined ratio for top-to-bottom layout */
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex: 14%;
+  background-color: var(--top-panel-bg, #0078d7); /* Customizable color */
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Bottom Panel (Main Content) */
+.bottom-panel {
+  flex: 86%; /* Golden ratio refinement for vertical flow */
+  display: flex;
+  flex-direction: row; /* Column layout for content stacking */
+  gap: 16px;
+  background-color: var(--bottom-panel-bg, #f5f5f5); /* Customizable color */
+  padding: 16px;
+  overflow-y: auto; /* Allow scrolling if content overflows */
+}
+
+.left-panel {
+  flex: 1 1 38%; /* Golden ratio for the left panel */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.right-panel {
+  flex: 1 1 62%; /* Golden ratio for the right panel */
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Root Navigation */
+.root-nav {
+  display: flex;
+  gap: 16px;
+  background-color: var(--primary-color, #0078d7);
+  color: white;
+  align-items: center;
+}
+.root-nav .nav-item {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+.root-nav .nav-item.active {
+  font-weight: bold;
+  border-bottom: 4px solid white;
+}
+
+/* Secondary Navigation */
+.secondary-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.nav-item {
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Action Panel */
+.action-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-button {
+  background-color: transparent;
+  border: none;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.action-button mat-icon {
+  font-size: 1.5rem;
+}
+
+/* Data Blocks */
+.data-blocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px;
+}
+
+.data-block {
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+/* List */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.list-item {
+  padding: 8px;
+  border-radius: 4px;
+  background-color: var(--item-color, #f5f5f5);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}

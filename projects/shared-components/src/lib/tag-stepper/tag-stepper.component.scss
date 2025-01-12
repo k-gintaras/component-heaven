@@ -1,0 +1,49 @@
+/* Center container and limit width */
+.container {
+  margin: 0 auto;
+  max-width: 800px; /* Reduced for a cleaner look */
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Space between sections */
+}
+
+/* Row selection styles */
+.row-selection mat-chip-listbox {
+  display: flex;
+  gap: 8px; /* Space between chips */
+  margin-bottom: 16px; /* Add spacing below */
+}
+
+/* Tag selection styles */
+.tag-selection mat-chip-listbox {
+  display: flex;
+  flex-wrap: wrap; /* Wrap tags on smaller screens */
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* Custom tag input styles */
+.custom-tags mat-form-field {
+  width: 100%;
+}
+
+.custom-tags mat-chip-row {
+  display: flex;
+  align-items: center;
+  background-color: #f1f1f1; /* Subtle background for tags */
+  padding: 4px 8px;
+  border-radius: 16px;
+}
+
+.custom-tags button[matChipRemove] {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ff0000; /* Red for remove button */
+  margin-left: 8px;
+}
+
+.custom-tags input {
+  padding: 4px;
+}

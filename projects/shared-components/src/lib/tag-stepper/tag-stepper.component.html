@@ -1,0 +1,47 @@
+<div class="container">
+  <!-- Row Selection -->
+  <div class="row-selection">
+    <mat-chip-listbox [(ngModel)]="currentRow" aria-label="Select a row">
+      <mat-chip-option *ngFor="let row of matrix" [value]="row">
+        {{ row.title }}
+      </mat-chip-option>
+    </mat-chip-listbox>
+  </div>
+
+  <!-- Tags for Current Row -->
+  <div class="tag-selection">
+    <mat-chip-listbox multiple aria-label="Select tags">
+      <mat-chip-option
+        *ngFor="let tag of currentRow?.value?.tags || []"
+        (click)="tryAddValidatedWithGroup(tag, resultsArray, false)"
+        [selected]="isThisTagSelected(tag.name)"
+      >
+        {{ tag.name }}
+      </mat-chip-option>
+    </mat-chip-listbox>
+  </div>
+
+  <!-- Custom Tag Input -->
+  <div class="custom-tags">
+    <mat-form-field>
+      <mat-chip-grid #customChipGrid>
+        <mat-chip-row
+          *ngFor="let customTag of custom"
+          [removable]="true"
+          (removed)="removeCustom(customTag)"
+        >
+          {{ customTag }}
+          <button matChipRemove aria-label="Remove tag">
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip-row>
+        <input
+          placeholder="Add a new tag"
+          [matChipInputFor]="customChipGrid"
+          [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+          (matChipInputTokenEnd)="addCustom($event)"
+        />
+      </mat-chip-grid>
+    </mat-form-field>
+  </div>
+</div>

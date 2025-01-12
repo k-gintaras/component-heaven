@@ -1,0 +1,102 @@
+<div class="layout">
+  <div class="top-panel">
+    <div class="root-nav">
+      <div
+        class="root-nav-item"
+        *ngFor="let item of primaryNav"
+        [class.active]="item.active"
+        [style.backgroundColor]="item.color"
+      >
+        {{ item.label }}
+      </div>
+    </div>
+  </div>
+  <div class="bottom-panel">
+    <div class="layout">
+      <div class="left-panel">
+        <div class="data-blocks">
+          <div class="secondary-nav">
+            <div
+              class="nav-item"
+              *ngFor="let item of secondaryNav"
+              [class.active]="item.active"
+              [style.backgroundColor]="item.color"
+            >
+              {{ item.label }}
+            </div>
+          </div>
+          <div class="action-panel">
+            <button
+              class="action-button"
+              *ngFor="let action of actions"
+              [style.color]="action.color"
+            >
+              <mat-icon>{{ action.icon }}</mat-icon> {{ action.label }}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div class="data-blocks">
+          <div
+            class="data-block"
+            *ngFor="let block of dataBlocks | slice: 0 : displayBlocksCount"
+            [style.backgroundColor]="block.color"
+          >
+            <h3>{{ block.title }}</h3>
+            <p>{{ block.description }}</p>
+            <small>{{ block.subDescription }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<hr />
+<div class="layout">
+  <!-- Left Panel -->
+  <div class="left-panel">
+    <div class="secondary-nav">
+      <div
+        class="nav-item"
+        *ngFor="let item of secondaryNav"
+        [class.active]="item.active"
+        [style.backgroundColor]="item.color"
+      >
+        {{ item.label }}
+      </div>
+    </div>
+
+    <div class="action-panel">
+      <button
+        class="action-button"
+        *ngFor="let action of actions"
+        [style.color]="action.color"
+      >
+        <mat-icon>{{ action.icon }}</mat-icon> {{ action.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right-panel">
+    <div class="data-blocks">
+      <div
+        class="data-block"
+        *ngFor="let block of dataBlocks | slice: 0 : displayBlocksCount"
+        [style.backgroundColor]="block.color"
+      >
+        <h3>{{ block.title }}</h3>
+        <p>{{ block.description }}</p>
+        <small>{{ block.subDescription }}</small>
+      </div>
+    </div>
+
+    <div class="list">
+      <div *ngFor="let listItem of listItems" class="list-item">
+        <h3>{{ listItem.title }}</h3>
+        <small>{{ listItem.description }}</small>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<div class="container mx-auto">
+  <!-- Group Selector as Tabs -->
+  <div class="tabs mb-4 flex gap-0 overflow-hidden">
+    <div
+      *ngFor="let group of visibleGroups"
+      class="tab flex-1 truncate relative"
+      [style.color]="group.backgroundColor"
+      [class.tab-active]="currentGroup?.id === group.id"
+      [class.tab-inactive]="currentGroup?.id !== group.id"
+      [class.tab-processed]="isGroupProcessed(group)"
+      (click)="selectGroup(group)"
+    >
+      <span class="truncate">{{ group.title }}</span>
+    </div>
+  </div>
+
+  <!-- Tag Display -->
+  <div *ngIf="currentGroup" class="flex flex-wrap gap-2 mb-4">
+    <div
+      *ngFor="let tag of currentGroup.tags"
+      class="badge badge-md cursor-pointer flex items-center gap-2"
+      [style.backgroundColor]="tag.backgroundColor"
+      [class.badge-active]="isTagSelected(tag)"
+      [class.badge-inactive]="
+        !isTagSelected(tag) && isGroupProcessed(currentGroup)
+      "
+      (click)="toggleTagAndNextGroup(tag)"
+    >
+      <span [style.color]="tag.color">{{ tag.name }}</span>
+    </div>
+  </div>
+
+  <!-- Selected Tags Display -->
+  <div *ngIf="selectedTags.length > 0" class="mt-2">
+    <div class="flex flex-wrap gap-1 justify-end">
+      <div *ngFor="let tag of selectedTags" class="badge badge-xs">
+        #{{ tag.name }}
+      </div>
+    </div>
+  </div>
+</div>
