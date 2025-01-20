@@ -24,7 +24,7 @@
   border-radius: 0%;
   border-top: none;
   border-right: none;
-  border-bottom: 1px solid white; /* Default light bottom border */
+  border-bottom: 1px solid rgb(194, 194, 194); /* Default light bottom border */
   border-left: none;
 }
 
@@ -36,11 +36,11 @@
 .tab-active.tab-processed {
   border-bottom: none; /* Remove bottom border for active processed tabs */
 }
-
 .badge-active {
-  margin-top: 10px;
+  position: relative; /* Allow element to move without affecting layout */
+  top: 5px; /* Moves it down */
 }
 
 .badge-inactive {
-  opacity: 0.7;
+  opacity: 0.6;
 }

@@ -1,4 +1,10 @@
-import { TagGroup, Tag } from './tag.interface';
+import {
+  TagGroup,
+  Tag,
+  ExtendedTagGroup,
+  ExtendedTag,
+  TagItem,
+} from './tag.interface';
 
 export const colorString =
   '#6e40aa, #753fad, #7d3faf, #863eb1, #8e3eb2, #963db3, #9e3db3, #a73cb3, #af3cb2, #b73cb1, #bf3caf, #c73dac, #cf3da9, #d63ea6, #dd3fa2, #e4419d, #ea4299, #f04494, #f5468e, #fa4988, #fe4b83, #ff4e7c, #ff5276, #ff5670, #ff5a6a, #ff5e63, #ff635d, #ff6757, #ff6d51, #ff724c, #ff7847, #ff7d42, #ff833d, #ff8a39, #ff9036, #fb9633, #f69d31, #f2a42f, #edaa2e, #e7b12e, #e2b72f, #dcbe30, #d7c432, #d1ca34, #ccd038, #c6d63c, #c1dc41, #bce146, #b7e64c, #b3eb53, #aff05b, #a6f159, #9cf357, #92f457, #88f557, #7ff658, #75f65a, #6cf65c, #63f75f, #5af663, #52f667, #4af56c, #43f471, #3cf276, #36f17c, #30ef82, #2bec89, #27e98f, #23e696, #20e29c, #1ddfa3, #1bdbaa, #1ad6b0, #19d1b6, #19cdbc, #1ac7c2, #1bc2c7, #1cbccc, #1eb7d1, #21b1d5, #23abd8, #27a5db, #2a9fde, #2e98df, #3292e1, #368ce1, #3a86e1, #3f80e1, #437ae0, #4874de, #4c6edb, #5169d9, #5563d5, #595ed1, #5d59cd, #6054c8, #6450c3, #674bbd, #6947b7, #6c43b1';
@@ -18,7 +24,7 @@ export function getColorPreset2(): string[] {
  * @param hexColor Background color in hex format (#RRGGBB or #RGB).
  * @returns Contrast color in hex format (#FFFFFF or #000000).
  */
-function getContrastColor(hexColor: string): string {
+export function getContrastColor(hexColor: string): string {
   // Remove the hash if it exists
   hexColor = hexColor.replace('#', '');
 
@@ -50,9 +56,9 @@ function getContrastColor(hexColor: string): string {
 export function getTestTagMatrix(
   groupCount: number,
   tagsPerGroup: number,
-): TagGroup[] {
-  const groups: TagGroup[] = [];
-  const allColors = getColorPreset();
+): ExtendedTagGroup[] {
+  const groups: ExtendedTagGroup[] = [];
+  const allColors = getColorPreset2();
   const contrastColors = allColors.map((c) => getContrastColor(c));
 
   const totalTags = groupCount * tagsPerGroup;
@@ -62,8 +68,8 @@ export function getTestTagMatrix(
 
   for (let i = 0; i < groupCount; i++) {
     const groupName = `Group ${i + 1}`;
-    const groupId = i + 1;
-    const tags: Tag[] = [];
+    const groupId = '' + i + 1;
+    const tags: ExtendedTag[] = [];
 
     const groupColorIndex =
       ((i * tagsPerGroup + 0) * colorStep) % allColors.length;
@@ -71,7 +77,7 @@ export function getTestTagMatrix(
       const colorIndex =
         ((i * tagsPerGroup + j) * colorStep) % allColors.length;
       tags.push({
-        id: id++,
+        id: '' + id++,
         group: groupId,
         name: `Badge: ${(i + 1) * (j + 1)}`,
         // name: `g+${i} t+${j} ${i + j + 1}`,
@@ -82,7 +88,7 @@ export function getTestTagMatrix(
 
     groups.push({
       id: groupId,
-      title: groupName,
+      name: groupName,
       tags: tags,
       color: contrastColors[groupColorIndex],
       backgroundColor: allColors[groupColorIndex],
@@ -90,4 +96,43 @@ export function getTestTagMatrix(
   }
 
   return groups;
+}
+
+export function getTestItems(
+  itemCount: number,
+  tagsPerItem: number,
+  tagGroups: ExtendedTagGroup[],
+): TagItem[] {
+  const items = [];
+  let tagId = 1;
+
+  for (let i = 0; i < itemCount; i++) {
+    const itemTags: Tag[] = [];
+    for (let j = 0; j < tagsPerItem; j++) {
+      // Pick a random tag group and tag
+      const groupIndex = Math.floor(Math.random() * tagGroups.length);
+      const tagIndex = Math.floor(
+        Math.random() * tagGroups[groupIndex].tags.length,
+      );
+      const tag = tagGroups[groupIndex].tags[tagIndex];
+
+      // Ensure unique tags for each item
+      if (!itemTags.find((t) => t.id === tag.id)) {
+        itemTags.push({
+          id: tag.id,
+          group: tag.group,
+          name: tag.name,
+        });
+      }
+    }
+
+    const item: TagItem = {
+      id: ' i + 1',
+      name: `Item ${i + 1}`,
+      tags: itemTags,
+    };
+    items.push(item);
+  }
+
+  return items;
 }
