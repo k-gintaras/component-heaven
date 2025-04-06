@@ -8,7 +8,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "lib:build": "ng build shared-components",
+    "lib:publish": "npm run lib:build && cd dist/shared-components && npm publish --access public"
   },
   "private": true,
   "dependencies": {
