@@ -14,13 +14,8 @@
 ### 🏷️ **Tagging Components**
 
 - **TagPicker** - Single-item tag selector with beautiful UI
-  ![tag-picker](image-1.png)
-
 - **TagMultipleItems** - Batch tagging with navigation
-  ![tag-multiple-items](image.png)
-
 - **PresetShowcase** - Interactive demo of 10+ built-in presets
-  ![alt text](image-2.png)
 
 ### 🎨 **10+ Built-in Presets**
 
@@ -42,8 +37,19 @@ Ready-to-use tag groups for common scenarios:
 ### Installation
 
 ```bash
-npm install @ubaby/componentator
+# Install the library and its dependencies
+npm install @ubaby/componentator @angular/material @angular/forms d3 chroma-js
+
+# Or with yarn
+yarn add @ubaby/componentator @angular/material @angular/forms d3 chroma-js
 ```
+
+**Required peer dependencies:**
+
+- `@angular/material` - For icons and UI components
+- `@angular/forms` - For form controls
+- `d3` - For color scheme generation
+- `chroma-js` - For color manipulation
 
 ### Simplest Example (30 seconds)
 
@@ -257,5 +263,35 @@ MIT © [Ubaby](https://github.com/ubaby)
 // Custom tag logic
 // Navigation handling
 // State management
-// Event coordina
+// Event coordination
+// CSS styling
+// ... 😫
 ```
+
+**After Componentator:**
+
+```typescript
+const { tagGroups, items } = quickSetup("file-management");
+// Done! 🎉
+```
+
+**Built with ❤️ for developers who value:**
+
+- ⚡ **Speed** - Get tagging interfaces running in minutes
+- 🎯 **Simplicity** - One-line setup, sensible defaults
+- 🎨 **Beauty** - Looks professional without designer skills
+- 🔧 **Flexibility** - Customize anything when you need to
+- 📱 **Responsive** - Works perfectly on all devices
+
+---
+
+<div align="center">
+
+**[📖 Documentation](https://your-docs-site.com)** •
+**[🎮 Live Demo](https://your-demo-site.com)** •
+**[🐛 Issues](https://github.com/your-repo/issues)** •
+**[💬 Discussions](https://github.com/your-repo/discussions)**
+
+**Give us a ⭐ if Componentator made your day better!**
+
+</div>

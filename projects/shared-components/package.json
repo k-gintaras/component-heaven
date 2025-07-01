@@ -1,12 +1,38 @@
 {
   "name": "@ubaby/componentator",
-  "version": "0.0.5",
+  "version": "0.1.0",
+  "description": "A collection of useful Angular components that don't suck",
+  "keywords": [
+    "angular",
+    "components",
+    "ui",
+    "tagging",
+    "navigation"
+  ],
   "peerDependencies": {
     "@angular/common": "^19.0.0",
-    "@angular/core": "^19.0.0"
+    "@angular/core": "^19.0.0",
+    "@angular/forms": "^19.0.0",
+    "@angular/material": "^19.0.0",
+    "d3": "^7.0.0",
+    "chroma-js": "^3.0.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"
+  },
+  "peerDependenciesMeta": {
+    "d3": {
+      "optional": false
+    },
+    "chroma-js": {
+      "optional": false
+    },
+    "@angular/material": {
+      "optional": false
+    },
+    "@angular/forms": {
+      "optional": false
+    }
   },
   "sideEffects": false
 }
