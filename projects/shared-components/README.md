@@ -14,8 +14,13 @@
 ### 🏷️ **Tagging Components**
 
 - **TagPicker** - Single-item tag selector with beautiful UI
+  ![tag-picker](image-1.png)
+
 - **TagMultipleItems** - Batch tagging with navigation
+  ![tag-multiple-items](image.png)
+
 - **PresetShowcase** - Interactive demo of 10+ built-in presets
+  ![alt text](image-2.png)
 
 ### 🎨 **10+ Built-in Presets**
 
