@@ -16,6 +16,7 @@ import {
 } from '../test-data';
 import { TagService } from '../tag.service';
 
+// !TODO: SERVICE REPLACES INPUT EVEN IF PASSED... should be allowing input if input is passed
 @Component({
   standalone: true,
   imports: [FormsModule, NgIf, NgFor],
