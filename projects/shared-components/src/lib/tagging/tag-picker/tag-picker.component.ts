@@ -19,12 +19,12 @@ import { TagService } from '../tag.service';
 @Component({
   standalone: true,
   imports: [FormsModule, NgIf, NgFor],
-  selector: 'app-tag-data',
-  templateUrl: './tag-data.component.html',
-  styleUrls: ['./tag-data.component.scss'],
+  selector: 'app-tag-picker',
+  templateUrl: './tag-picker.component.html',
+  styleUrls: ['./tag-picker.component.css'],
   encapsulation: ViewEncapsulation.None, // Disable encapsulation
 })
-export class TagDataComponent implements OnInit {
+export class TagPickerComponent implements OnInit {
   @Input() customTagGroups: TagGroup[] = getTestTagMatrix(20, 10);
 
   @Input() palette: string[] = this.getDefaultPalette();
@@ -57,13 +57,22 @@ export class TagDataComponent implements OnInit {
 
     this.tagService.currentItem$.subscribe((item) => {
       if (item) {
-        this.currentGroup = this.groups[0];
+        // Reset to first group when switching items
+        this.currentGroup = this.groups.length > 0 ? this.groups[0] : null;
+
+        // Set selected tags from the current item
         this.selectedTags = item.tags.map((tag) => ({
           ...tag,
           color: '',
           backgroundColor: '',
         }));
+
         this.preSelectTags(this.selectedTags);
+        this.updateVisibleGroups();
+      } else {
+        // No current item - clear selections
+        this.selectedTags = [];
+        this.currentGroup = this.groups.length > 0 ? this.groups[0] : null;
         this.updateVisibleGroups();
       }
     });

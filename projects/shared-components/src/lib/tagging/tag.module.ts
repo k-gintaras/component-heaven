@@ -1,14 +1,14 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TagManagerComponent } from './tag-manager/tag-manager.component';
-import { TagDataComponent } from './tag-data/tag-data.component';
+import { TagMultipleItemsComponent } from './tag-multiple-items/tag-multiple-items.component';
+import { TagPickerComponent } from './tag-picker/tag-picker.component';
 
 @NgModule({
   imports: [
     CommonModule, // Required for Angular directives
-    TagManagerComponent, // Import standalone components
-    TagDataComponent,
+    TagMultipleItemsComponent, // Import standalone components
+    TagPickerComponent,
   ],
-  exports: [TagManagerComponent], // Export the primary reusable component
+  exports: [TagMultipleItemsComponent], // Export the primary reusable component
 })
 export class TagManagerModule {}

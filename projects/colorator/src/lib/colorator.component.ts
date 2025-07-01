@@ -1,15 +1,15 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'lib-shared-components',
+  selector: 'lib-colorator',
   imports: [],
   template: `
     <p>
-      shared-components works!
+      colorator works!
     </p>
   `,
   styles: ``
 })
-export class SharedComponentsComponent {
+export class ColoratorComponent {
 
 }

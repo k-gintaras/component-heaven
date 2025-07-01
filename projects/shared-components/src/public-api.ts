@@ -2,14 +2,30 @@
  * Public API Surface of shared-components
  */
 
-export * from './lib/shared-components.service';
-export * from './lib/shared-components.component';
+//colors
 export * from './lib/tools/colors';
 export * from './lib/tools/color-services/color-scheme-sets.service';
+
+//tagging
 export * from './lib/tagging/tag.module';
-export * from './lib/tagging/tag-manager/tag-manager.component';
-export * from './lib/tagging/tag-data/tag-data.component';
 export * from './lib/tagging/tag.interface';
 export * from './lib/tagging/test-data';
 export * from './lib/tagging/tag.service';
-// export * from './styles/styles.css';
+
+export * from './lib/tagging/tag-picker/tag-picker.component';
+export * from './lib/tagging/tag-multiple-items/tag-multiple-items.component';
+
+export {
+  createPresetTagGroups as createPreset,
+  getAvailablePresets as getPresets,
+  createSampleItemsForPreset as createSampleItems,
+} from './lib/tagging/tag-group-presets';
+
+export {
+  tagsFromSimpleData as createTagsFromData,
+  quickSetup as quickTagSetup,
+  createTag,
+  createTags,
+  createTagGroup,
+  createTaggedItem,
+} from './lib/tagging/tag-helpers';

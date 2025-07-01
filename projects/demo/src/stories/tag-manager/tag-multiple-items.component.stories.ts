@@ -1,21 +1,21 @@
 import { Meta, StoryObj } from '@storybook/angular';
-import { TagManagerComponent } from '../../../../shared-components/src/lib/tagging/tag-manager/tag-manager.component';
 import {
   getTestTagMatrix,
   getTestItems,
 } from '../../../../shared-components/src/lib/tagging/test-data';
+import { TagMultipleItemsComponent } from '../../../../shared-components/src/lib/tagging/tag-multiple-items/tag-multiple-items.component';
 
 const tagGroups = getTestTagMatrix(5, 10); // 5 groups, 10 tags each
 const items = getTestItems(10, 3, tagGroups); // 10 items, each with up to 3 pre-assigned tags
 
-const meta: Meta<TagManagerComponent> = {
-  title: 'Components/TagManager',
-  component: TagManagerComponent,
+const meta: Meta<TagMultipleItemsComponent> = {
+  title: 'Components/TagMultipleItemsComponent',
+  component: TagMultipleItemsComponent,
 };
 
 export default meta;
 
-type Story = StoryObj<TagManagerComponent>;
+type Story = StoryObj<TagMultipleItemsComponent>;
 
 export const Default: Story = {
   args: {

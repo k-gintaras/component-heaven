@@ -1,6 +1,6 @@
 {
   "name": "component-heaven",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "scripts": {
     "storybook": "ng run demo:storybook",
     "build-storybook": "ng run demo:build-storybook",

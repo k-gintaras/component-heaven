@@ -1,0 +1,80 @@
+<div class="p-4 bg-gray-100 rounded-lg shadow-md">
+  <!-- Header with Navigation -->
+  <div class="flex items-center justify-between mb-4">
+    <!-- Previous Button -->
+    <button
+      [disabled]="!canNavigatePrevious()"
+      (click)="moveToPreviousItem()"
+      class="p-1 rounded hover:bg-gray-200 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+      [title]="canNavigatePrevious() ? 'Previous item' : 'No previous item'"
+    >
+      <mat-icon
+        [ngClass]="{
+          'text-gray-400': !canNavigatePrevious(),
+          'text-gray-800': canNavigatePrevious(),
+        }"
+      >
+        chevron_left
+      </mat-icon>
+    </button>
+
+    <!-- Title -->
+    <h2 class="text-lg font-bold text-gray-800 truncate">
+      <span *ngIf="hasItems()">Tagging: {{ getCurrentItemName() }}</span>
+      <span *ngIf="!hasItems()" class="text-gray-500">No Items to Tag</span>
+    </h2>
+
+    <!-- Next Button -->
+    <button
+      [disabled]="!canNavigateNext()"
+      (click)="moveToNextItem()"
+      class="p-1 rounded hover:bg-gray-200 disabled:hover:bg-transparent disabled:cursor-not-allowed"
+      [title]="canNavigateNext() ? 'Next item' : 'No next item'"
+    >
+      <mat-icon
+        [ngClass]="{
+          'text-gray-400': !canNavigateNext(),
+          'text-gray-800': canNavigateNext(),
+        }"
+      >
+        chevron_right
+      </mat-icon>
+    </button>
+  </div>
+
+  <!-- Tagging Component - only show if we have items and tag groups -->
+  <div *ngIf="hasItems() && tagGroups.length > 0">
+    <app-tag-picker
+      [customTagGroups]="tagGroups"
+      [canMultiSelect]="canMultiSelect"
+      [canReplace]="canReplace"
+      [maxVisibleTabs]="maxVisibleTabs"
+      (tagAdded)="onTagAdded($event)"
+      (tagRemoved)="onTagRemoved($event)"
+    ></app-tag-picker>
+  </div>
+
+  <!-- Empty States -->
+  <div *ngIf="!hasItems()" class="text-center py-8 text-gray-500">
+    <mat-icon class="text-4xl mb-2">label_off</mat-icon>
+    <p class="text-lg">No items to tag</p>
+    <p class="text-sm">Add some items to start tagging</p>
+  </div>
+
+  <div
+    *ngIf="hasItems() && tagGroups.length === 0"
+    class="text-center py-8 text-gray-500"
+  >
+    <mat-icon class="text-4xl mb-2">category</mat-icon>
+    <p class="text-lg">No tag groups available</p>
+    <p class="text-sm">Add some tag groups to start tagging</p>
+  </div>
+
+  <!-- Status -->
+  <div class="mt-4 text-left text-sm text-gray-600">
+    {{ getItemStatus() }}
+    <span *ngIf="hasItems() && currentItemHasTags()" class="ml-2">
+      ({{ getCurrentItemTagCount() }} tags applied)
+    </span>
+  </div>
+</div>
