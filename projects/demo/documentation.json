@@ -9,7 +9,7 @@
     "components": [
         {
             "name": "AppComponent",
-            "id": "component-AppComponent-acca6ba99e8d36a901ef2afec809a8bf6e795574cc99fc5b3558c90b27c6089d54946df6fdaa3abe824e6bd6c5b0d89f0346c02d54e339eb240d6920950461bc",
+            "id": "component-AppComponent-00066be276bd80a8dee7c91966f9d44c26768ad342954983eae9b04ec6d59f4a5c35571e9f92b816127458a435c5f892910053e43591c9c696060307d367dd74",
             "file": "projects/demo/src/app/app.component.ts",
             "encapsulation": [],
             "entryComponents": [],
@@ -36,7 +36,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 15
+                    "line": 18
                 },
                 {
                     "name": "tagGroups",
@@ -47,7 +47,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 14
+                    "line": 17
                 },
                 {
                     "name": "title",
@@ -58,7 +58,7 @@
                     "indexKey": "",
                     "optional": false,
                     "description": "",
-                    "line": 13
+                    "line": 16
                 }
             ],
             "methodsClass": [],
@@ -79,7 +79,7 @@
             "description": "",
             "rawdescription": "\n",
             "type": "component",
-            "sourceCode": "import { Component } from '@angular/core';\r\nimport { RouterOutlet } from '@angular/router';\r\nimport { getTestTagMatrix, getTestItems } from 'shared-components';\r\nimport { TagMultipleItemsComponent } from '../../../shared-components/src/public-api';\r\n\r\n@Component({\r\n  selector: 'app-root',\r\n  imports: [RouterOutlet, TagMultipleItemsComponent],\r\n  templateUrl: './app.component.html',\r\n  styleUrl: './app.component.scss',\r\n})\r\nexport class AppComponent {\r\n  title = 'demo';\r\n  tagGroups = getTestTagMatrix(5, 10); // 5 groups, 10 tags each\r\n  items = getTestItems(10, 3, this.tagGroups);\r\n}\r\n",
+            "sourceCode": "import { Component } from '@angular/core';\r\nimport { RouterOutlet } from '@angular/router';\r\nimport { TagMultipleItemsComponent } from '../../../shared-components/src/lib/tagging/tag-multiple-items/tag-multiple-items.component';\r\nimport {\r\n  getTestItems,\r\n  getTestTagMatrix,\r\n} from '../../../shared-components/src/lib/tagging/test-data';\r\n\r\n@Component({\r\n  selector: 'app-root',\r\n  imports: [RouterOutlet, TagMultipleItemsComponent],\r\n  templateUrl: './app.component.html',\r\n  styleUrl: './app.component.scss',\r\n})\r\nexport class AppComponent {\r\n  title = 'demo';\r\n  tagGroups = getTestTagMatrix(5, 10); // 5 groups, 10 tags each\r\n  items = getTestItems(10, 3, this.tagGroups);\r\n}\r\n",
             "styleUrl": "./app.component.scss",
             "assetsDirs": [],
             "styleUrlsData": "",

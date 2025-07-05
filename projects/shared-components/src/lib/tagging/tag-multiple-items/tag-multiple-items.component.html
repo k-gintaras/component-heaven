@@ -18,11 +18,17 @@
       </mat-icon>
     </button>
 
-    <!-- Title -->
-    <h2 class="text-lg font-bold text-gray-800 truncate">
-      <span *ngIf="hasItems()">Tagging: {{ getCurrentItemName() }}</span>
-      <span *ngIf="!hasItems()" class="text-gray-500">No Items to Tag</span>
-    </h2>
+    <!-- Title with Completion Indicator -->
+    <div class="text-center">
+      <!-- <h2 class="text-lg font-bold text-gray-800 truncate">
+        <span *ngIf="hasItems()">Tagging: {{ getCurrentItemName() }}</span>
+        <span *ngIf="!hasItems()" class="text-gray-500">No Items to Tag</span>
+      </h2> -->
+      <!-- In your template’s header -->
+      <h2 class="text-lg font-bold truncate" [style.color]="getTitleColor()">
+        Tagging: {{ getCurrentItemName() }}
+      </h2>
+    </div>
 
     <!-- Next Button -->
     <button
@@ -46,16 +52,24 @@
   <div *ngIf="hasItems() && tagGroups.length > 0">
     <app-tag-picker
       [customTagGroups]="tagGroups"
+      [selectedTags]="getCurrentItemTags()"
       [canMultiSelect]="canMultiSelect"
       [canReplace]="canReplace"
       [maxVisibleTabs]="maxVisibleTabs"
+      [autoAdvanceGroups]="autoAdvanceGroups"
       (tagAdded)="onTagAdded($event)"
       (tagRemoved)="onTagRemoved($event)"
-    ></app-tag-picker>
+      (tagSelectionChanged)="onTagSelectionChanged($event)"
+      (taggingCompleted)="onItemTaggingCompleted($event)"
+    >
+    </app-tag-picker>
   </div>
 
   <!-- Empty States -->
-  <div *ngIf="!hasItems()" class="text-center py-8 text-gray-500">
+  <div
+    *ngIf="!hasItems() && !createSingleItemMode"
+    class="text-center py-8 text-gray-500"
+  >
     <mat-icon class="text-4xl mb-2">label_off</mat-icon>
     <p class="text-lg">No items to tag</p>
     <p class="text-sm">Add some items to start tagging</p>
@@ -71,10 +85,7 @@
   </div>
 
   <!-- Status -->
-  <div class="mt-4 text-left text-sm text-gray-600">
-    {{ getItemStatus() }}
-    <span *ngIf="hasItems() && currentItemHasTags()" class="ml-2">
-      ({{ getCurrentItemTagCount() }} tags applied)
-    </span>
+  <div class="mt-4 flex justify-between items-center text-sm text-gray-600">
+    <span>{{ getItemStatus() }}</span>
   </div>
 </div>

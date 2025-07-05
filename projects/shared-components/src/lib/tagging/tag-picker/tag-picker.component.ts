@@ -6,6 +6,8 @@ import {
   Output,
   EventEmitter,
   ViewEncapsulation,
+  OnChanges,
+  SimpleChanges,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TagGroup, Tag, ExtendedTagGroup, ExtendedTag } from '../tag.interface';
@@ -14,140 +16,148 @@ import {
   getContrastColor,
   getTestTagMatrix,
 } from '../test-data';
-import { TagService } from '../tag.service';
 
-// !TODO: SERVICE REPLACES INPUT EVEN IF PASSED... should be allowing input if input is passed
 @Component({
   standalone: true,
   imports: [FormsModule, NgIf, NgFor],
   selector: 'app-tag-picker',
   templateUrl: './tag-picker.component.html',
   styleUrls: ['./tag-picker.component.css'],
-  encapsulation: ViewEncapsulation.None, // Disable encapsulation
+  encapsulation: ViewEncapsulation.None,
 })
-export class TagPickerComponent implements OnInit {
-  @Input() customTagGroups: TagGroup[] = getTestTagMatrix(20, 10);
-
-  @Input() palette: string[] = this.getDefaultPalette();
-  @Input() contrastPalette: string[] = this.getContrastPalette(this.palette);
-
+export class TagPickerComponent implements OnInit, OnChanges {
+  // === INPUTS (Primary way to configure the component) ===
+  @Input() customTagGroups: TagGroup[] = [];
+  @Input() selectedTags: Tag[] = []; // Pre-selected tags
+  @Input() palette: string[] = getColorPreset();
   @Input() canMultiSelect = false;
   @Input() canReplace = true;
   @Input() maxVisibleTabs = 5;
+  @Input() autoAdvanceGroups = true; // Auto-advance to next group after selection
+
+  // === OUTPUTS ===
   @Output() tagAdded = new EventEmitter<Tag>();
   @Output() tagRemoved = new EventEmitter<Tag>();
+  @Output() selectionChanged = new EventEmitter<Tag[]>(); // Emit all selected tags
+  @Output() allGroupsProcessed = new EventEmitter<boolean>(); // Emit when all groups have tags
 
+  // === INTERNAL STATE ===
   visibleGroups: ExtendedTagGroup[] = [];
-  private currentStartIndex = 0;
-
   currentGroup: ExtendedTagGroup | null = null;
   groups: ExtendedTagGroup[] = [];
-  selectedTags: ExtendedTag[] = [];
+  internalSelectedTags: ExtendedTag[] = [];
 
-  constructor(private tagService: TagService) {}
+  private currentStartIndex = 0;
 
   ngOnInit(): void {
-    this.tagService.tagGroups$.subscribe((groups) => {
-      this.customTagGroups = groups;
-      this.initializeGroups();
-      if (this.groups.length > 0) {
-        this.currentGroup = this.groups[0];
-      }
-      this.updateVisibleGroups();
-    });
-
-    this.tagService.currentItem$.subscribe((item) => {
-      if (item) {
-        // Reset to first group when switching items
-        this.currentGroup = this.groups.length > 0 ? this.groups[0] : null;
-
-        // Set selected tags from the current item
-        this.selectedTags = item.tags.map((tag) => ({
-          ...tag,
-          color: '',
-          backgroundColor: '',
-        }));
-
-        this.preSelectTags(this.selectedTags);
-        this.updateVisibleGroups();
-      } else {
-        // No current item - clear selections
-        this.selectedTags = [];
-        this.currentGroup = this.groups.length > 0 ? this.groups[0] : null;
-        this.updateVisibleGroups();
-      }
-    });
+    this.initializeComponent();
   }
 
-  preSelectTags(preSelectedTags: Tag[]): void {
-    preSelectedTags.forEach((preTag) => {
-      // Locate the corresponding tag in groups
-      const group = this.groups.find((g) => g.id === preTag.group);
-      if (!group) return; // Skip if no matching group found
-
-      const tag = group.tags.find((t) => t.id === preTag.id);
-      if (tag && !this.isTagSelected(tag)) {
-        // Toggle tag if it's not already selected
-        this.toggleTagAndNextGroup(tag as ExtendedTag);
-      }
-    });
+  ngOnChanges(changes: SimpleChanges): void {
+    if (
+      changes['customTagGroups'] ||
+      changes['selectedTags'] ||
+      changes['palette']
+    ) {
+      this.initializeComponent();
+    }
   }
 
   /**
-   * Initialize groups by converting TagGroup to ExtendedTagGroup.
-   * Colors are added only if needed later.
+   * Initialize the component with current inputs
    */
-  initializeGroups(): void {
-    this.groups = this.customTagGroups.map((group) => {
+  private initializeComponent(): void {
+    // Use input data or fall back to test data
+    const tagGroups =
+      this.customTagGroups.length > 0
+        ? this.customTagGroups
+        : getTestTagMatrix(3, 5);
+
+    this.initializeGroups(tagGroups);
+    this.initializeSelectedTags();
+
+    if (this.groups.length > 0) {
+      this.currentGroup = this.groups[0];
+    }
+
+    this.updateVisibleGroups();
+  }
+
+  /**
+   * Initialize groups and assign colors
+   */
+  private initializeGroups(tagGroups: TagGroup[]): void {
+    this.groups = tagGroups.map((group) => {
       const tags = group.tags.map((tag) => ({
         ...tag,
-        color: '', // Placeholder for future color assignment
+        color: '',
         backgroundColor: '',
       }));
       return {
         ...group,
         tags,
-        color: '', // Placeholder for group-level color
+        color: '',
         backgroundColor: '',
       };
     });
+
     this.assignColors();
   }
 
   /**
-   * Dynamically assign colors to groups and tags using the provided palette.
+   * Initialize selected tags from input
    */
-  assignColors(): void {
-    const allColors = this.palette; // Use the provided palette
-    const contrastColors = this.getContrastPalette(allColors); // Get contrast colors
+  private initializeSelectedTags(): void {
+    this.internalSelectedTags = this.selectedTags.map((tag) => ({
+      ...tag,
+      color: '',
+      backgroundColor: '',
+    }));
+
+    // Apply colors to selected tags
+    this.internalSelectedTags.forEach((selectedTag) => {
+      const group = this.groups.find((g) => g.id === selectedTag.group);
+      const fullTag = group?.tags.find((t) => t.id === selectedTag.id);
+      if (fullTag) {
+        selectedTag.color = fullTag.color;
+        selectedTag.backgroundColor = fullTag.backgroundColor;
+      }
+    });
+  }
+
+  /**
+   * Assign colors to groups and tags
+   */
+  private assignColors(): void {
+    const allColors = this.palette;
+    const contrastColors = allColors.map((c) => getContrastColor(c));
 
     const totalTags = this.groups.reduce(
       (sum, group) => sum + group.tags.length,
       0,
-    ); // Total number of tags
-    const totalGroups = this.groups.length; // Total number of tags
-    const colorStep = Math.max(1, Math.floor(allColors.length / totalTags)); // Calculate step size for even distribution
-    const groupStep = Math.max(1, Math.floor(allColors.length / totalGroups)); // Calculate step size for even distribution
+    );
+    const totalGroups = this.groups.length;
+    const colorStep = Math.max(1, Math.floor(allColors.length / totalTags));
+    const groupStep = Math.max(1, Math.floor(allColors.length / totalGroups));
 
-    let globalTagIndex = 0; // Track the global tag index across all groups
+    let globalTagIndex = 0;
 
-    // Assign colors to groups and their tags
     this.groups.forEach((group, groupIndex) => {
-      const groupColorIndex = (groupIndex * groupStep) % allColors.length; // Index for group color
+      const groupColorIndex = (groupIndex * groupStep) % allColors.length;
       group.color = contrastColors[groupColorIndex];
       group.backgroundColor = allColors[groupColorIndex];
 
-      group.tags.forEach((tag, tagIndex) => {
-        const colorIndex = (globalTagIndex * colorStep) % allColors.length; // Index for tag color
+      group.tags.forEach((tag) => {
+        const colorIndex = (globalTagIndex * colorStep) % allColors.length;
         tag.color = contrastColors[colorIndex];
         tag.backgroundColor = allColors[colorIndex];
-        globalTagIndex++; // Increment global tag index
+        globalTagIndex++;
       });
     });
   }
 
   /**
-   * Update the visible groups for pagination.
+   * Update visible groups for pagination
    */
   private updateVisibleGroups(): void {
     const totalGroups = this.groups.length;
@@ -157,18 +167,13 @@ export class TagPickerComponent implements OnInit {
       return;
     }
 
-    this.currentStartIndex =
-      (this.currentStartIndex + totalGroups) % totalGroups;
-
     this.visibleGroups = this.groups.slice(
       this.currentStartIndex,
       this.currentStartIndex + this.maxVisibleTabs,
     );
 
-    if (
-      this.currentStartIndex + this.maxVisibleTabs > totalGroups &&
-      this.currentStartIndex < totalGroups
-    ) {
+    // Handle wrap-around
+    if (this.currentStartIndex + this.maxVisibleTabs > totalGroups) {
       const remaining = totalGroups - this.currentStartIndex;
       this.visibleGroups = this.groups
         .slice(this.currentStartIndex)
@@ -177,108 +182,223 @@ export class TagPickerComponent implements OnInit {
   }
 
   /**
-   * Select a group and update visible range if necessary.
+   * Select a group manually and update pagination
    */
   selectGroup(group: ExtendedTagGroup): void {
     const groupIndex = this.groups.indexOf(group);
-
-    if (
-      groupIndex === this.currentStartIndex + this.maxVisibleTabs - 1 &&
-      groupIndex < this.groups.length - 1
-    ) {
-      this.currentStartIndex += this.maxVisibleTabs - 1;
-    } else if (
-      groupIndex === this.currentStartIndex &&
-      this.currentStartIndex > 0
-    ) {
-      this.currentStartIndex -= this.maxVisibleTabs - 1;
-    }
-
-    this.currentStartIndex = Math.min(
-      Math.max(0, this.currentStartIndex),
-      this.groups.length - this.maxVisibleTabs,
-    );
-
-    this.updateVisibleGroups();
     this.currentGroup = group;
+
+    // Update visible groups if needed for pagination
+    if (
+      groupIndex < this.currentStartIndex ||
+      groupIndex >= this.currentStartIndex + this.maxVisibleTabs
+    ) {
+      // If clicking on a group that's not visible, center it in the view
+      this.currentStartIndex = Math.max(
+        0,
+        groupIndex - Math.floor(this.maxVisibleTabs / 2),
+      );
+      this.currentStartIndex = Math.min(
+        this.currentStartIndex,
+        this.groups.length - this.maxVisibleTabs,
+      );
+
+      this.updateVisibleGroups();
+    } else {
+      // Handle edge cases for smooth pagination
+      const totalGroups = this.groups.length;
+
+      // If we clicked the last visible tab and there are more tabs to the right
+      if (
+        groupIndex === this.currentStartIndex + this.maxVisibleTabs - 1 &&
+        this.currentStartIndex + this.maxVisibleTabs < totalGroups
+      ) {
+        this.currentStartIndex = Math.min(
+          this.currentStartIndex + 1,
+          totalGroups - this.maxVisibleTabs,
+        );
+        this.updateVisibleGroups();
+      }
+      // If we clicked the first visible tab and there are more tabs to the left
+      else if (
+        groupIndex === this.currentStartIndex &&
+        this.currentStartIndex > 0
+      ) {
+        this.currentStartIndex = Math.max(this.currentStartIndex - 1, 0);
+        this.updateVisibleGroups();
+      }
+    }
   }
 
   /**
-   * Toggle tag selection and move to the next group.
+   * Toggle tag selection
    */
-  toggleTagAndNextGroup(tag: ExtendedTag): void {
-    const tagIndex = this.selectedTags.findIndex((t) => t.id === tag.id);
+  toggleTag(tag: ExtendedTag): void {
+    const tagIndex = this.internalSelectedTags.findIndex(
+      (t) => t.id === tag.id,
+    );
 
     if (tagIndex > -1) {
-      // If the tag is already selected and can be replaced, remove it
+      // Tag is selected - remove it if replacement is allowed
       if (this.canReplace) {
-        this.selectedTags.splice(tagIndex, 1);
-        this.tagRemoved.emit(tag);
-        return;
+        const removedTag = this.internalSelectedTags.splice(tagIndex, 1)[0];
+        this.tagRemoved.emit(removedTag);
       }
     } else {
+      // Tag is not selected - add it
       if (!this.canMultiSelect) {
-        // Find tags from the same group that are no longer included
-        const tagsToRemove = this.selectedTags.filter(
-          (t) => t.group === this.currentGroup?.id && t.id !== tag.id,
+        // Remove other tags from the same group
+        const tagsToRemove = this.internalSelectedTags.filter(
+          (t) => t.group === this.currentGroup?.id,
         );
 
-        // Emit tagRemoved for each tag that is removed
         tagsToRemove.forEach((removedTag) => {
           this.tagRemoved.emit(removedTag);
         });
 
-        // Update the selectedTags array to include only the new tag
-        this.selectedTags = this.selectedTags.filter(
+        this.internalSelectedTags = this.internalSelectedTags.filter(
           (t) => t.group !== this.currentGroup?.id,
         );
       }
 
-      // Add the new tag to the selectedTags array
-      this.selectedTags.push(tag);
+      // Add the new tag
+      this.internalSelectedTags.push(tag);
       this.tagAdded.emit(tag);
     }
 
-    // Switch to the next group after toggling the tag
-    this.switchToNextGroup();
+    // Emit all selected tags
+    this.selectionChanged.emit([...this.internalSelectedTags]);
+
+    // Check if all groups are processed and emit
+    this.checkAndEmitAllGroupsProcessed();
+
+    // Auto-advance to next group if enabled
+    if (this.autoAdvanceGroups) {
+      this.switchToNextGroup();
+    }
+    this.selectedTags = this.internalSelectedTags.map(
+      ({ id, name, group }) => ({ id, name, group }),
+    );
   }
 
   /**
-   * Helper to move to the next group.
+   * Move to the next group
    */
   private switchToNextGroup(): void {
-    const currentIndex = this.groups.indexOf(this.currentGroup!);
-    const nextIndex = (currentIndex + 1) % this.groups.length;
+    if (!this.currentGroup) return;
 
+    const currentIndex = this.groups.indexOf(this.currentGroup);
+    const nextIndex = (currentIndex + 1) % this.groups.length;
     this.currentGroup = this.groups[nextIndex];
 
+    // Update visible groups if needed
     if (nextIndex >= this.currentStartIndex + this.maxVisibleTabs) {
       this.currentStartIndex = Math.min(
         nextIndex,
         this.groups.length - this.maxVisibleTabs,
       );
+      this.updateVisibleGroups();
     } else if (nextIndex < this.currentStartIndex) {
       this.currentStartIndex = nextIndex;
+      this.updateVisibleGroups();
     }
-
-    this.updateVisibleGroups();
   }
 
-  getDefaultPalette(): string[] {
-    return getColorPreset();
-  }
-
-  getContrastPalette(colors: string[]): string[] {
-    return colors.map((c) => getContrastColor(c));
-  }
-
-  // Check if a tag is selected
+  /**
+   * Check if a tag is selected
+   */
   isTagSelected(tag: Tag): boolean {
-    return this.selectedTags.some((t) => t.id === tag.id);
+    return this.internalSelectedTags.some((t) => t.id === tag.id);
   }
 
-  // Check if a group has been processed (has selected tags)
+  /**
+   * Check if a group has any selected tags
+   */
   isGroupProcessed(group: TagGroup): boolean {
-    return this.selectedTags.some((tag) => tag.group === group.id);
+    return this.internalSelectedTags.some((tag) => tag.group === group.id);
+  }
+
+  /**
+   * Check if all groups have at least one selected tag
+   */
+  areAllGroupsProcessed(): boolean {
+    if (this.groups.length === 0) return false;
+    return this.groups.every((group) => this.isGroupProcessed(group));
+  }
+
+  /**
+   * Check and emit all groups processed status
+   */
+  private checkAndEmitAllGroupsProcessed(): void {
+    const allProcessed = this.areAllGroupsProcessed();
+    this.allGroupsProcessed.emit(allProcessed);
+  }
+
+  /**
+   * Get all currently selected tags (for external access)
+   */
+  getSelectedTags(): Tag[] {
+    return [...this.internalSelectedTags];
+  }
+
+  /**
+   * Get processing statistics
+   */
+  getProcessingStats(): {
+    totalGroups: number;
+    processedGroups: number;
+    unprocessedGroups: number;
+    completionPercentage: number;
+    isComplete: boolean;
+  } {
+    const totalGroups = this.groups.length;
+    const processedGroups = this.groups.filter((group) =>
+      this.isGroupProcessed(group),
+    ).length;
+    const unprocessedGroups = totalGroups - processedGroups;
+    const completionPercentage =
+      totalGroups > 0 ? Math.round((processedGroups / totalGroups) * 100) : 0;
+    const isComplete = this.areAllGroupsProcessed();
+
+    return {
+      totalGroups,
+      processedGroups,
+      unprocessedGroups,
+      completionPercentage,
+      isComplete,
+    };
+  }
+
+  /**
+   * Get unprocessed groups (groups with no selected tags)
+   */
+  getUnprocessedGroups(): ExtendedTagGroup[] {
+    return this.groups.filter((group) => !this.isGroupProcessed(group));
+  }
+
+  /**
+   * Programmatically clear all selections
+   */
+  clearAllTags(): void {
+    const tagsToRemove = [...this.internalSelectedTags];
+    this.internalSelectedTags = [];
+
+    tagsToRemove.forEach((tag) => {
+      this.tagRemoved.emit(tag);
+    });
+
+    this.selectionChanged.emit([]);
+  }
+
+  /**
+   * Programmatically add a tag
+   */
+  addTag(tag: Tag): void {
+    const group = this.groups.find((g) => g.id === tag.group);
+    const fullTag = group?.tags.find((t) => t.id === tag.id);
+
+    if (fullTag && !this.isTagSelected(fullTag)) {
+      this.toggleTag(fullTag);
+    }
   }
 }

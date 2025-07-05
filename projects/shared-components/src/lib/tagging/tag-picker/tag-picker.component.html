@@ -4,7 +4,9 @@
     <div
       *ngFor="let group of visibleGroups"
       class="tab flex-1 truncate relative"
-      [style.color]="group.backgroundColor"
+      [style.color]="
+        isGroupProcessed(group) ? 'inherit' : group.backgroundColor
+      "
       [class.tab-active]="currentGroup?.id === group.id"
       [class.tab-inactive]="currentGroup?.id !== group.id"
       [class.tab-processed]="isGroupProcessed(group)"
@@ -24,7 +26,7 @@
       [class.badge-inactive]="
         !isTagSelected(tag) && isGroupProcessed(currentGroup)
       "
-      (click)="toggleTagAndNextGroup(tag)"
+      (click)="toggleTag(tag)"
     >
       <span [style.color]="tag.color">{{ tag.name }}</span>
     </div>
@@ -33,7 +35,7 @@
   <!-- Selected Tags Display -->
   <div *ngIf="selectedTags.length > 0" class="mt-2">
     <div class="flex flex-wrap gap-1 justify-end">
-      <div *ngFor="let tag of selectedTags" class="badge badge-xs">
+      <div *ngFor="let tag of internalSelectedTags" class="badge badge-xs">
         #{{ tag.name }}
       </div>
     </div>

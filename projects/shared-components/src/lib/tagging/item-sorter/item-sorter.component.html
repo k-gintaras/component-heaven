@@ -1,0 +1,26 @@
+<!-- item-sort.component.html -->
+<div class="flex items-center gap-2">
+  <select
+    class="select select-bordered w-32"
+    [(ngModel)]="method"
+    (ngModelChange)="apply()"
+  >
+    <option value="name">Name</option>
+    <option value="tagCount">Tag Count</option>
+  </select>
+
+  <select
+    class="select select-bordered w-24"
+    [(ngModel)]="asc"
+    (ngModelChange)="apply()"
+  >
+    <option [ngValue]="true">Asc</option>
+    <option [ngValue]="false">Desc</option>
+  </select>
+</div>
+
+<ul *ngIf="sorted | async as list" class="mt-4 list-disc pl-5">
+  <li *ngFor="let i of list" class="py-1">
+    {{ i.name }} ({{ i.tags.length }})
+  </li>
+</ul>

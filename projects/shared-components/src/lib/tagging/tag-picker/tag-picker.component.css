@@ -9,6 +9,7 @@
   flex-grow: 1; /* Ensure tabs evenly distribute space */
   text-align: center; /* Center-align tab text */
   padding: 2px;
+  transition: color 0.2s;
 }
 
 .tab-active {
@@ -26,16 +27,19 @@
   border-right: none;
   border-bottom: 1px solid rgb(194, 194, 194); /* Default light bottom border */
   border-left: none;
+  border-bottom: 2px solid currentColor;
 }
 
 .tab-processed {
-  border-bottom: 1px solid black; /* Black bottom border for processed tabs */
+  color: grey; /* Grey text for processed tabs */
+  border-bottom: 1px solid grey; /* Black bottom border for processed tabs */
 }
 
 /* Ensure .tab-active overrides .tab-processed */
 .tab-active.tab-processed {
   border-bottom: none; /* Remove bottom border for active processed tabs */
 }
+
 .badge-active {
   position: relative; /* Allow element to move without affecting layout */
   top: 5px; /* Moves it down */
@@ -43,4 +47,10 @@
 
 .badge-inactive {
   opacity: 0.6;
+}
+
+.badge-xs {
+  color: grey;
+  background-color: transparent;
+  border: 0px solid grey;
 }

@@ -9,7 +9,6 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { Tag, TagGroup, TagItem } from '../tag.interface';
-import { TagService } from '../tag.service';
 import { MatIcon } from '@angular/material/icon';
 import { NgClass, NgIf } from '@angular/common';
 import { TagPickerComponent } from '../tag-picker/tag-picker.component';
@@ -23,62 +22,123 @@ import { TagPickerComponent } from '../tag-picker/tag-picker.component';
   encapsulation: ViewEncapsulation.None,
 })
 export class TagMultipleItemsComponent implements OnInit, OnChanges {
+  // === BASIC INPUTS ===
   @Input() items: TagItem[] = []; // List of items to tag
   @Input() tagGroups: TagGroup[] = []; // Available tag groups
+
+  // === TAG PICKER OPTIONS ===
   @Input() canMultiSelect: boolean = false; // Multi-select tags
   @Input() canReplace: boolean = true; // Replace existing tags
   @Input() maxVisibleTabs: number = 5; // Tabs visible in tagging component
+  @Input() autoAdvanceGroups: boolean = true; // Auto-advance groups in picker
 
-  @Output() tagAdded = new EventEmitter<Tag>(); // Emit when a tag is added
-  @Output() tagRemoved = new EventEmitter<Tag>(); // Emit when a tag is removed
-  @Output() nextItem = new EventEmitter<TagItem>(); // Emit when moving to the next item
-  @Output() previousItem = new EventEmitter<TagItem>(); // Emit when moving to the previous item
+  // === WORKFLOW OPTIONS ===
+  @Input() autoAdvanceItems: boolean = false; // Auto-advance to next item when current is complete
+  @Input() createSingleItemMode: boolean = false; // Create a fake item if no items provided
+  @Input() singleItemName: string = 'Current Item'; // Name for the fake item in single mode
 
-  currentIndex = 0; // Index of the current item
+  // === INDIVIDUAL TAG EVENTS ===
+  @Output() tagAdded = new EventEmitter<{
+    tag: Tag;
+    item: TagItem;
+    itemIndex: number;
+  }>();
+  @Output() tagRemoved = new EventEmitter<{
+    tag: Tag;
+    item: TagItem;
+    itemIndex: number;
+  }>();
 
-  constructor(private tagService: TagService) {}
+  // === SELECTION EVENTS ===
+  @Output() tagSelectionChanged = new EventEmitter<{
+    tags: Tag[];
+    item: TagItem;
+    itemIndex: number;
+  }>();
+  @Output() itemTaggingCompleted = new EventEmitter<{
+    item: TagItem;
+    itemIndex: number;
+    isComplete: boolean;
+  }>();
+
+  // === NAVIGATION EVENTS ===
+  @Output() nextItem = new EventEmitter<TagItem>();
+  @Output() previousItem = new EventEmitter<TagItem>();
+  @Output() itemChanged = new EventEmitter<{ item: TagItem; index: number }>();
+
+  // === BATCH COMPLETION EVENTS ===
+  @Output() batchTaggingCompleted = new EventEmitter<{
+    allItemsComplete: boolean;
+    completedCount: number;
+    totalCount: number;
+  }>();
+
+  // === INTERNAL STATE ===
+  currentIndex = 0;
+  private internalItems: TagItem[] = [];
 
   ngOnInit(): void {
     this.initializeComponent();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Check if `items` input has changed
-    if (changes['items'] && changes['items'].currentValue) {
-      this.currentIndex = 0; // Reset to the first item when new items are passed
+    if (
+      changes['items'] ||
+      changes['createSingleItemMode'] ||
+      changes['singleItemName']
+    ) {
+      this.currentIndex = 0;
       this.initializeComponent();
-    }
-
-    // Check if `tagGroups` input has changed
-    if (changes['tagGroups'] && changes['tagGroups'].currentValue) {
-      this.tagService.setTagGroups([...this.tagGroups]);
     }
   }
 
   private initializeComponent(): void {
-    // Set tag groups if available
-    if (this.tagGroups.length > 0) {
-      this.tagService.setTagGroups([...this.tagGroups]);
-    }
+    this.setupItems();
+    this.checkBatchCompletion();
+  }
 
-    // Set current item if items exist
-    if (this.hasItems()) {
-      this.tagService.setCurrentItem(this.items[this.currentIndex]);
+  /**
+   * Setup items - either use provided items or create a fake one for single-item mode
+   */
+  private setupItems(): void {
+    if (this.createSingleItemMode && (!this.items || this.items.length === 0)) {
+      // Create a fake item for single-item tagging
+      this.internalItems = [
+        {
+          id: 'single-item',
+          name: this.singleItemName,
+          tags: [],
+        },
+      ];
     } else {
-      // Clear current item if no items
-      this.tagService.clearCurrentItem();
+      this.internalItems = [...this.items];
     }
   }
 
+  // === ITEM NAVIGATION ===
+
+  // In your component class
+  getTitleColor(): string {
+    const stats = this.getBatchStats();
+    if (stats.currentItemComplete) {
+      return 'gray';
+    }
+    // find the first group that isn’t tagged yet, grab its tab color
+    const firstIncomplete = this.tagGroups.find(
+      (g) => !this.getCurrentItemTags().some((t) => t.group === g.id),
+    );
+    return 'green';
+  }
+
   hasItems(): boolean {
-    return this.items && this.items.length > 0;
+    return this.internalItems && this.internalItems.length > 0;
   }
 
   getCurrentItem(): TagItem | null {
     if (!this.hasItems()) {
       return null;
     }
-    return this.items[this.currentIndex];
+    return this.internalItems[this.currentIndex];
   }
 
   getCurrentItemName(): string {
@@ -87,7 +147,7 @@ export class TagMultipleItemsComponent implements OnInit, OnChanges {
   }
 
   canNavigateNext(): boolean {
-    return this.hasItems() && this.currentIndex < this.items.length - 1;
+    return this.hasItems() && this.currentIndex < this.internalItems.length - 1;
   }
 
   canNavigatePrevious(): boolean {
@@ -98,21 +158,52 @@ export class TagMultipleItemsComponent implements OnInit, OnChanges {
     if (!this.hasItems()) {
       return 'No items';
     }
-    return `Item ${this.currentIndex + 1} of ${this.items.length}`;
+    return `Item ${this.currentIndex + 1} of ${this.internalItems.length}`;
   }
 
-  /**
-   * Get the number of tags applied to the current item.
-   * Safe method that handles null/undefined cases.
-   */
-  getCurrentItemTagCount(): number {
+  moveToNextItem(): void {
+    if (!this.canNavigateNext()) {
+      return;
+    }
+
+    this.currentIndex++;
+    const newItem = this.internalItems[this.currentIndex];
+    this.nextItem.emit(newItem);
+    this.itemChanged.emit({ item: newItem, index: this.currentIndex });
+  }
+
+  moveToPreviousItem(): void {
+    if (!this.canNavigatePrevious()) {
+      return;
+    }
+
+    this.currentIndex--;
+    const newItem = this.internalItems[this.currentIndex];
+    this.previousItem.emit(newItem);
+    this.itemChanged.emit({ item: newItem, index: this.currentIndex });
+  }
+
+  moveToItem(index: number): void {
+    if (!this.hasItems() || index < 0 || index >= this.internalItems.length) {
+      return;
+    }
+
+    this.currentIndex = index;
+    const newItem = this.internalItems[this.currentIndex];
+    this.itemChanged.emit({ item: newItem, index: this.currentIndex });
+  }
+
+  // === TAG MANAGEMENT ===
+
+  getCurrentItemTags(): Tag[] {
     const currentItem = this.getCurrentItem();
-    return currentItem?.tags?.length || 0;
+    return currentItem?.tags || [];
   }
 
-  /**
-   * Check if the current item has any tags applied.
-   */
+  getCurrentItemTagCount(): number {
+    return this.getCurrentItemTags().length;
+  }
+
   currentItemHasTags(): boolean {
     return this.getCurrentItemTagCount() > 0;
   }
@@ -128,7 +219,22 @@ export class TagMultipleItemsComponent implements OnInit, OnChanges {
     const existingTag = currentItem.tags.find((t) => t.id === tag.id);
     if (!existingTag) {
       currentItem.tags.push(tag);
-      this.tagAdded.emit(tag);
+
+      // Emit events
+      this.tagAdded.emit({
+        tag,
+        item: currentItem,
+        itemIndex: this.currentIndex,
+      });
+
+      this.tagSelectionChanged.emit({
+        tags: [...currentItem.tags],
+        item: currentItem,
+        itemIndex: this.currentIndex,
+      });
+
+      this.checkItemCompletion(currentItem);
+      this.checkBatchCompletion();
     }
   }
 
@@ -140,35 +246,166 @@ export class TagMultipleItemsComponent implements OnInit, OnChanges {
     }
 
     currentItem.tags = currentItem.tags.filter((t) => t.id !== tag.id);
-    this.tagRemoved.emit(tag);
+
+    // Emit events
+    this.tagRemoved.emit({
+      tag,
+      item: currentItem,
+      itemIndex: this.currentIndex,
+    });
+
+    this.tagSelectionChanged.emit({
+      tags: [...currentItem.tags],
+      item: currentItem,
+      itemIndex: this.currentIndex,
+    });
+
+    this.checkItemCompletion(currentItem);
+    this.checkBatchCompletion();
   }
 
-  moveToNextItem(): void {
-    if (!this.canNavigateNext()) {
+  onTagSelectionChanged(tags: Tag[]): void {
+    const currentItem = this.getCurrentItem();
+    if (!currentItem) return;
+
+    // Update the item's tags to match the selection
+    currentItem.tags = [...tags];
+
+    this.tagSelectionChanged.emit({
+      tags,
+      item: currentItem,
+      itemIndex: this.currentIndex,
+    });
+
+    this.checkItemCompletion(currentItem);
+    this.checkBatchCompletion();
+  }
+
+  onItemTaggingCompleted(isComplete: boolean): void {
+    const currentItem = this.getCurrentItem();
+    if (!currentItem) return;
+
+    this.itemTaggingCompleted.emit({
+      item: currentItem,
+      itemIndex: this.currentIndex,
+      isComplete,
+    });
+
+    // Auto-advance to next item if enabled and current item is complete
+    if (this.autoAdvanceItems && isComplete && this.canNavigateNext()) {
+      setTimeout(() => {
+        this.moveToNextItem();
+      }, 500); // Small delay for better UX
+    }
+  }
+
+  // === COMPLETION TRACKING ===
+
+  /**
+   * Check if current item has all groups tagged
+   */
+  private checkItemCompletion(item: TagItem): void {
+    if (this.tagGroups.length === 0) return;
+
+    const taggedGroupIds = new Set(item.tags.map((tag) => tag.group));
+    const requiredGroupIds = new Set(this.tagGroups.map((group) => group.id));
+
+    const isComplete = this.tagGroups.every((group) =>
+      taggedGroupIds.has(group.id),
+    );
+
+    this.itemTaggingCompleted.emit({
+      item,
+      itemIndex: this.currentIndex,
+      isComplete,
+    });
+  }
+
+  /**
+   * Check if all items in the batch are complete
+   */
+  private checkBatchCompletion(): void {
+    if (!this.hasItems() || this.tagGroups.length === 0) {
+      this.batchTaggingCompleted.emit({
+        allItemsComplete: false,
+        completedCount: 0,
+        totalCount: this.internalItems.length,
+      });
       return;
     }
 
-    this.currentIndex++;
-    this.tagService.setCurrentItem(this.items[this.currentIndex]);
-    this.nextItem.emit(this.items[this.currentIndex]);
+    const completedItems = this.internalItems.filter((item) => {
+      const taggedGroupIds = new Set(item.tags.map((tag) => tag.group));
+      return this.tagGroups.every((group) => taggedGroupIds.has(group.id));
+    });
+
+    const allComplete = completedItems.length === this.internalItems.length;
+
+    this.batchTaggingCompleted.emit({
+      allItemsComplete: allComplete,
+      completedCount: completedItems.length,
+      totalCount: this.internalItems.length,
+    });
   }
 
-  moveToPreviousItem(): void {
-    if (!this.canNavigatePrevious()) {
-      return;
+  // === UTILITY METHODS ===
+
+  /**
+   * Get completion statistics for all items
+   */
+  getBatchStats(): {
+    totalItems: number;
+    completedItems: number;
+    currentItemComplete: boolean;
+    overallProgress: number;
+  } {
+    if (!this.hasItems() || this.tagGroups.length === 0) {
+      return {
+        totalItems: 0,
+        completedItems: 0,
+        currentItemComplete: false,
+        overallProgress: 0,
+      };
     }
 
-    this.currentIndex--;
-    this.tagService.setCurrentItem(this.items[this.currentIndex]);
-    this.previousItem.emit(this.items[this.currentIndex]);
+    const completedItems = this.internalItems.filter((item) => {
+      const taggedGroupIds = new Set(item.tags.map((tag) => tag.group));
+      return this.tagGroups.every((group) => taggedGroupIds.has(group.id));
+    });
+
+    const currentItem = this.getCurrentItem();
+    const currentItemComplete = currentItem
+      ? this.tagGroups.every((group) =>
+          currentItem.tags.some((tag) => tag.group === group.id),
+        )
+      : false;
+
+    return {
+      totalItems: this.internalItems.length,
+      completedItems: completedItems.length,
+      currentItemComplete,
+      overallProgress: Math.round(
+        (completedItems.length / this.internalItems.length) * 100,
+      ),
+    };
   }
 
-  moveToItem(index: number): void {
-    if (!this.hasItems() || index < 0 || index >= this.items.length) {
-      return;
-    }
+  /**
+   * Get the actual items (useful for parent components)
+   */
+  getItems(): TagItem[] {
+    return [...this.internalItems];
+  }
 
-    this.currentIndex = index;
-    this.tagService.setCurrentItem(this.items[this.currentIndex]);
+  /**
+   * Get items that still need tagging
+   */
+  getIncompleteItems(): TagItem[] {
+    if (this.tagGroups.length === 0) return [];
+
+    return this.internalItems.filter((item) => {
+      const taggedGroupIds = new Set(item.tags.map((tag) => tag.group));
+      return !this.tagGroups.every((group) => taggedGroupIds.has(group.id));
+    });
   }
 }

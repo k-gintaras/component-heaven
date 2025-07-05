@@ -338,4 +338,43 @@ export class TagService {
 
     return [presets[preset]];
   }
+
+  /** Sort items alphabetically by name (asc or desc) */
+  sortItemsByName(items: TagItem[], asc: boolean = true): TagItem[] {
+    return [...items].sort((a, b) =>
+      asc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name),
+    );
+  }
+
+  /** Sort items by how many tags they have (fewest→most or reverse) */
+  sortItemsByTagCount(items: TagItem[], asc: boolean = true): TagItem[] {
+    return [...items].sort((a, b) =>
+      asc ? a.tags.length - b.tags.length : b.tags.length - a.tags.length,
+    );
+  }
+
+  /** Group items by a specific tag ID */
+  groupItemsByTag(
+    items: TagItem[],
+    tagId: string,
+  ): { with: TagItem[]; without: TagItem[] } {
+    return {
+      with: items.filter((i) => i.tags.some((t) => t.id === tagId)),
+      without: items.filter((i) => !i.tags.some((t) => t.id === tagId)),
+    };
+  }
+
+  /** Cluster items by their tag-groups */
+  groupItemsByGroup(items: TagItem[]): Record<string, TagItem[]> {
+    return items.reduce(
+      (acc, item) => {
+        item.tags.forEach((tag) => {
+          acc[tag.group] = acc[tag.group] || [];
+          acc[tag.group].push(item);
+        });
+        return acc;
+      },
+      {} as Record<string, TagItem[]>,
+    );
+  }
 }

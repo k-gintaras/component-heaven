@@ -1,0 +1,46 @@
+<!-- preset-manager.component.html -->
+<div class="p-4 bg-white rounded-lg shadow-sm">
+  <!-- New Preset Form -->
+  <div class="flex items-center mb-4 space-x-2">
+    <input
+      type="text"
+      [(ngModel)]="presetName"
+      placeholder="Preset name"
+      class="input input-bordered flex-1"
+    />
+    <button (click)="savePreset()" class="btn btn-sm btn-primary">Save</button>
+  </div>
+
+  <!-- Presets List -->
+  <div *ngIf="currentPresets.length > 0" class="space-y-2">
+    <h3 class="text-sm font-semibold">Presets</h3>
+    <ul class="space-y-1">
+      <li
+        *ngFor="let p of currentPresets"
+        class="flex items-center justify-between"
+      >
+        <button
+          (click)="applyPreset(p)"
+          class="btn btn-ghost btn-xs flex-1 text-left"
+        >
+          {{ p.name }}
+        </button>
+        <button
+          (click)="deletePreset(p.name)"
+          class="btn btn-xs btn-error ml-2"
+          title="Delete preset"
+        >
+          ✕
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- No Presets State -->
+  <div
+    *ngIf="currentPresets.length === 0"
+    class="text-center text-sm text-gray-500"
+  >
+    No presets yet
+  </div>
+</div>
