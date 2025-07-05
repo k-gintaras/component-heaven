@@ -1,0 +1,35 @@
+<div class="container mx-auto">
+  <!-- Matrix Mode: Groups as rows -->
+  <div *ngFor="let group of groups" class="flex items-start mb-4">
+    <!-- Group Name -->
+    <div
+      class="font-semibold mr-4 w-1/4 truncate"
+      [style.color]="group.backgroundColor"
+    >
+      {{ group.name }}
+    </div>
+
+    <!-- Tags Row -->
+    <div class="flex flex-wrap gap-2 w-3/4">
+      <div
+        *ngFor="let tag of group.tags"
+        class="badge badge-md cursor-pointer flex items-center gap-2"
+        [style.backgroundColor]="tag.backgroundColor"
+        [class.badge-active]="isSelected(tag)"
+        [class.badge-inactive]="!isSelected(tag)"
+        (click)="toggle(tag)"
+      >
+        <span [style.color]="tag.color">{{ tag.name }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selected Tags Display -->
+  <div *ngIf="internalSelectedTags.length > 0" class="mt-2">
+    <div class="flex flex-wrap gap-1 justify-end">
+      <div *ngFor="let tag of internalSelectedTags" class="badge badge-xs">
+        #{{ tag.name }}
+      </div>
+    </div>
+  </div>
+</div>

@@ -68,7 +68,7 @@ export function getTestTagMatrix(
 
   for (let i = 0; i < groupCount; i++) {
     const groupName = `Group ${i + 1}`;
-    const groupId = '' + i + 1;
+    const groupId = (i + 1).toString(); // Creates "1", "2", "3" instead of "01", "11", "21"
     const tags: ExtendedTag[] = [];
 
     const groupColorIndex =
@@ -104,7 +104,6 @@ export function getTestItems(
   tagGroups: ExtendedTagGroup[],
 ): TagItem[] {
   const items = [];
-  let tagId = 1;
 
   for (let i = 0; i < itemCount; i++) {
     const itemTags: Tag[] = [];
@@ -127,7 +126,7 @@ export function getTestItems(
     }
 
     const item: TagItem = {
-      id: ' i + 1',
+      id: `${i + 1}`, // 🐛 BUG WAS HERE: ' i + 1' should be `${i + 1}`
       name: `Item ${i + 1}`,
       tags: itemTags,
     };

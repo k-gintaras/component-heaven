@@ -57,12 +57,22 @@
       [canReplace]="canReplace"
       [maxVisibleTabs]="maxVisibleTabs"
       [autoAdvanceGroups]="autoAdvanceGroups"
-      (tagAdded)="onTagAdded($event)"
       (tagRemoved)="onTagRemoved($event)"
       (tagSelectionChanged)="onTagSelectionChanged($event)"
       (taggingCompleted)="onItemTaggingCompleted($event)"
     >
     </app-tag-picker>
+    <!-- <app-tag-picker-matrix
+      [customTagGroups]="tagGroups"
+      [selectedTags]="getCurrentItemTags()"
+      [canMultiSelect]="canMultiSelect"
+      [canReplace]="canReplace"
+      (tagAdded)="onTagAdded($event)"
+      (tagRemoved)="onTagRemoved($event)"
+      (tagSelectionChanged)="onTagSelectionChanged($event)"
+      (taggingCompleted)="onItemTaggingCompleted($event)"
+    >
+    </app-tag-picker-matrix> -->
   </div>
 
   <!-- Empty States -->

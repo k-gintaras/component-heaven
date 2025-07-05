@@ -74,8 +74,8 @@ export const WithPreSelectedTags: Story = {
   args: {
     customTagGroups: getTestTagMatrix(3, 4),
     selectedTags: [
-      { id: '1', group: '11', name: 'Badge: 1' },
-      { id: '5', group: '21', name: 'Badge: 2' },
+      { id: '1', group: '1', name: 'Badge: 1' }, // ← Fixed: '1' not '11'
+      { id: '5', group: '2', name: 'Badge: 2' }, // ← Fixed: '2' not '21'
     ],
     canMultiSelect: false,
     autoAdvanceGroups: true,

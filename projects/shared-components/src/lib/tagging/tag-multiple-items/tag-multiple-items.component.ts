@@ -7,18 +7,26 @@ import {
   SimpleChanges,
   OnChanges,
   ViewEncapsulation,
+  ViewChild,
 } from '@angular/core';
 import { Tag, TagGroup, TagItem } from '../tag.interface';
 import { MatIcon } from '@angular/material/icon';
 import { NgClass, NgIf } from '@angular/common';
 import { TagPickerComponent } from '../tag-picker/tag-picker.component';
+import { TagPickerMatrixComponent } from '../tag-picker-matrix/tag-picker-matrix.component';
 
 @Component({
   standalone: true,
   selector: 'app-tag-multiple-items',
   templateUrl: './tag-multiple-items.component.html',
   styleUrls: ['./tag-multiple-items.component.css'],
-  imports: [TagPickerComponent, MatIcon, NgClass, NgIf],
+  imports: [
+    TagPickerComponent,
+    TagPickerMatrixComponent,
+    MatIcon,
+    NgClass,
+    NgIf,
+  ],
   encapsulation: ViewEncapsulation.None,
 })
 export class TagMultipleItemsComponent implements OnInit, OnChanges {
@@ -73,9 +81,14 @@ export class TagMultipleItemsComponent implements OnInit, OnChanges {
     totalCount: number;
   }>();
 
+  // === VIEW CHILD REFERENCES ===
+  @ViewChild(TagPickerComponent) tagPicker?: TagPickerComponent;
+
   // === INTERNAL STATE ===
   currentIndex = 0;
   private internalItems: TagItem[] = [];
+  // Force tag picker to reinitialize when switching items
+  tagPickerKey = 0;
 
   ngOnInit(): void {
     this.initializeComponent();
@@ -89,6 +102,8 @@ export class TagMultipleItemsComponent implements OnInit, OnChanges {
     ) {
       this.currentIndex = 0;
       this.initializeComponent();
+      // Force tag picker to reinitialize
+      this.tagPickerKey++;
     }
   }
 
@@ -123,7 +138,7 @@ export class TagMultipleItemsComponent implements OnInit, OnChanges {
     if (stats.currentItemComplete) {
       return 'gray';
     }
-    // find the first group that isn’t tagged yet, grab its tab color
+    // find the first group that isn't tagged yet, grab its tab color
     const firstIncomplete = this.tagGroups.find(
       (g) => !this.getCurrentItemTags().some((t) => t.group === g.id),
     );
@@ -165,32 +180,48 @@ export class TagMultipleItemsComponent implements OnInit, OnChanges {
     if (!this.canNavigateNext()) {
       return;
     }
-
     this.currentIndex++;
-    const newItem = this.internalItems[this.currentIndex];
-    this.nextItem.emit(newItem);
-    this.itemChanged.emit({ item: newItem, index: this.currentIndex });
+    this.onItemChanged();
   }
 
   moveToPreviousItem(): void {
     if (!this.canNavigatePrevious()) {
       return;
     }
-
     this.currentIndex--;
-    const newItem = this.internalItems[this.currentIndex];
-    this.previousItem.emit(newItem);
-    this.itemChanged.emit({ item: newItem, index: this.currentIndex });
+    this.onItemChanged();
   }
 
   moveToItem(index: number): void {
     if (!this.hasItems() || index < 0 || index >= this.internalItems.length) {
       return;
     }
-
     this.currentIndex = index;
+    this.onItemChanged();
+  }
+
+  /**
+   * Handle item change - reset tag picker to first tab
+   */
+  private onItemChanged(): void {
     const newItem = this.internalItems[this.currentIndex];
+
+    // Force tag picker to reinitialize by changing the key
+    // This ensures it resets to the first tab
+    this.tagPickerKey++;
+
+    // Emit events
+    this.nextItem.emit(newItem);
+    this.previousItem.emit(newItem);
     this.itemChanged.emit({ item: newItem, index: this.currentIndex });
+
+    // Alternative approach: If you want to keep the same instance
+    // and just reset the current group, you can use this instead:
+    // setTimeout(() => {
+    //   if (this.tagPicker && this.tagGroups.length > 0) {
+    //     this.tagPicker.selectGroup(this.tagPicker.groups[0]);
+    //   }
+    // });
   }
 
   // === TAG MANAGEMENT ===
@@ -208,69 +239,91 @@ export class TagMultipleItemsComponent implements OnInit, OnChanges {
     return this.getCurrentItemTagCount() > 0;
   }
 
-  onTagAdded(tag: Tag): void {
-    const currentItem = this.getCurrentItem();
-    if (!currentItem) {
-      console.warn('Cannot add tag: no current item');
-      return;
-    }
+  // onTagAdded(tag: Tag): void {
+  //   // const currentItem = this.getCurrentItem();
+  //   // if (!currentItem) {
+  //   //   console.warn('Cannot add tag: no current item');
+  //   //   return;
+  //   // }
+  //   // // Check if tag already exists
+  //   // const existingTag = currentItem.tags.find((t) => t.id === tag.id);
+  //   // if (!existingTag) {
+  //   //   currentItem.tags.push(tag);
+  //   //   // Emit events
+  //   //   this.tagAdded.emit({
+  //   //     tag,
+  //   //     item: currentItem,
+  //   //     itemIndex: this.currentIndex,
+  //   //   });
+  //   //   this.tagSelectionChanged.emit({
+  //   //     tags: [...currentItem.tags],
+  //   //     item: currentItem,
+  //   //     itemIndex: this.currentIndex,
+  //   //   });
+  //   //   this.checkItemCompletion(currentItem);
+  //   //   this.checkBatchCompletion();
+  //   // }
+  // }
 
-    // Check if tag already exists
-    const existingTag = currentItem.tags.find((t) => t.id === tag.id);
-    if (!existingTag) {
-      currentItem.tags.push(tag);
-
-      // Emit events
-      this.tagAdded.emit({
-        tag,
-        item: currentItem,
-        itemIndex: this.currentIndex,
-      });
-
-      this.tagSelectionChanged.emit({
-        tags: [...currentItem.tags],
-        item: currentItem,
-        itemIndex: this.currentIndex,
-      });
-
-      this.checkItemCompletion(currentItem);
-      this.checkBatchCompletion();
-    }
-  }
-
-  onTagRemoved(tag: Tag): void {
-    const currentItem = this.getCurrentItem();
-    if (!currentItem) {
-      console.warn('Cannot remove tag: no current item');
-      return;
-    }
-
-    currentItem.tags = currentItem.tags.filter((t) => t.id !== tag.id);
-
-    // Emit events
-    this.tagRemoved.emit({
-      tag,
-      item: currentItem,
-      itemIndex: this.currentIndex,
-    });
-
-    this.tagSelectionChanged.emit({
-      tags: [...currentItem.tags],
-      item: currentItem,
-      itemIndex: this.currentIndex,
-    });
-
-    this.checkItemCompletion(currentItem);
-    this.checkBatchCompletion();
-  }
+  // onTagRemoved(tag: Tag): void {
+  //   // const currentItem = this.getCurrentItem();
+  //   // if (!currentItem) {
+  //   //   console.warn('Cannot remove tag: no current item');
+  //   //   return;
+  //   // }
+  //   // currentItem.tags = currentItem.tags.filter((t) => t.id !== tag.id);
+  //   // // Emit events
+  //   // this.tagRemoved.emit({
+  //   //   tag,
+  //   //   item: currentItem,
+  //   //   itemIndex: this.currentIndex,
+  //   // });
+  //   // this.tagSelectionChanged.emit({
+  //   //   tags: [...currentItem.tags],
+  //   //   item: currentItem,
+  //   //   itemIndex: this.currentIndex,
+  //   // });
+  //   // this.checkItemCompletion(currentItem);
+  //   // this.checkBatchCompletion();
+  // }
 
   onTagSelectionChanged(tags: Tag[]): void {
     const currentItem = this.getCurrentItem();
     if (!currentItem) return;
 
+    // Get previous tags for comparison
+    const previousTags = [...currentItem.tags];
+
     // Update the item's tags to match the selection
     currentItem.tags = [...tags];
 
+    // Emit individual tag events by comparing old vs new
+    const previousTagIds = new Set(previousTags.map((t) => t.id));
+    const newTagIds = new Set(tags.map((t) => t.id));
+
+    // Find added tags
+    tags.forEach((tag) => {
+      if (!previousTagIds.has(tag.id)) {
+        this.tagAdded.emit({
+          tag,
+          item: currentItem,
+          itemIndex: this.currentIndex,
+        });
+      }
+    });
+
+    // Find removed tags
+    previousTags.forEach((tag) => {
+      if (!newTagIds.has(tag.id)) {
+        this.tagRemoved.emit({
+          tag,
+          item: currentItem,
+          itemIndex: this.currentIndex,
+        });
+      }
+    });
+
+    // Emit the bulk selection change
     this.tagSelectionChanged.emit({
       tags,
       item: currentItem,
@@ -280,6 +333,23 @@ export class TagMultipleItemsComponent implements OnInit, OnChanges {
     this.checkItemCompletion(currentItem);
     this.checkBatchCompletion();
   }
+
+  // onTagSelectionChanged(tags: Tag[]): void {
+  //   const currentItem = this.getCurrentItem();
+  //   if (!currentItem) return;
+
+  //   // Update the item's tags to match the selection
+  //   currentItem.tags = [...tags];
+
+  //   this.tagSelectionChanged.emit({
+  //     tags,
+  //     item: currentItem,
+  //     itemIndex: this.currentIndex,
+  //   });
+
+  //   this.checkItemCompletion(currentItem);
+  //   this.checkBatchCompletion();
+  // }
 
   onItemTaggingCompleted(isComplete: boolean): void {
     const currentItem = this.getCurrentItem();

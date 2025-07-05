@@ -1,4 +1,4 @@
-import { NgFor, NgIf } from '@angular/common';
+import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { TagItem } from '../tag.interface';
 import { TagService } from '../tag.service';
@@ -6,7 +6,7 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'lib-item-sorter',
-  imports: [FormsModule, NgFor, NgIf],
+  imports: [FormsModule, NgFor, NgIf, AsyncPipe],
   templateUrl: './item-sorter.component.html',
   styleUrl: './item-sorter.component.css',
 })

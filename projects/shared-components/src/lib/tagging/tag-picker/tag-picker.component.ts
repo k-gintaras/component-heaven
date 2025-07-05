@@ -30,6 +30,7 @@ export class TagPickerComponent implements OnInit, OnChanges {
   @Input() customTagGroups: TagGroup[] = [];
   @Input() selectedTags: Tag[] = []; // Pre-selected tags
   @Input() palette: string[] = getColorPreset();
+  @Input() key = '1';
   @Input() canMultiSelect = false;
   @Input() canReplace = true;
   @Input() maxVisibleTabs = 5;
@@ -67,6 +68,9 @@ export class TagPickerComponent implements OnInit, OnChanges {
    * Initialize the component with current inputs
    */
   private initializeComponent(): void {
+    // RESET ALL STATE - this was missing!
+    this.resetComponentState();
+
     // Use input data or fall back to test data
     const tagGroups =
       this.customTagGroups.length > 0
@@ -76,11 +80,75 @@ export class TagPickerComponent implements OnInit, OnChanges {
     this.initializeGroups(tagGroups);
     this.initializeSelectedTags();
 
-    if (this.groups.length > 0) {
-      this.currentGroup = this.groups[0];
+    // Set current group AFTER groups are initialized
+    this.setInitialCurrentGroup();
+    this.updateVisibleGroups();
+  }
+
+  /**
+   * Reset all internal state - FIXED: This was the missing piece
+   */
+  private resetComponentState(): void {
+    this.currentStartIndex = 0;
+    this.currentGroup = null;
+    this.groups = [];
+    this.visibleGroups = [];
+    this.internalSelectedTags = [];
+  }
+
+  /**
+   * Set the initial current group based on selected tags or default to first
+   */
+  private setInitialCurrentGroup(): void {
+    if (this.groups.length === 0) {
+      this.currentGroup = null;
+      return;
     }
 
-    this.updateVisibleGroups();
+    // If we have selected tags, try to set current group to the first group with selections
+    if (this.internalSelectedTags.length > 0) {
+      const firstSelectedGroup = this.groups.find((group) =>
+        this.internalSelectedTags.some((tag) => tag.group === group.id),
+      );
+      if (firstSelectedGroup) {
+        this.currentGroup = firstSelectedGroup;
+        // Update pagination to show this group
+        const groupIndex = this.groups.indexOf(firstSelectedGroup);
+        this.adjustPaginationForGroup(groupIndex);
+        return;
+      }
+    }
+
+    // Default to first group
+    this.currentGroup = this.groups[0];
+  }
+
+  /**
+   * Adjust pagination to ensure a specific group is visible
+   */
+  private adjustPaginationForGroup(groupIndex: number): void {
+    if (this.groups.length <= this.maxVisibleTabs) {
+      this.currentStartIndex = 0;
+      return;
+    }
+
+    // If group is not in current visible range, adjust
+    if (
+      groupIndex < this.currentStartIndex ||
+      groupIndex >= this.currentStartIndex + this.maxVisibleTabs
+    ) {
+      // Center the group in the visible range
+      this.currentStartIndex = Math.max(
+        0,
+        groupIndex - Math.floor(this.maxVisibleTabs / 2),
+      );
+
+      // Ensure we don't go past the end
+      this.currentStartIndex = Math.min(
+        this.currentStartIndex,
+        this.groups.length - this.maxVisibleTabs,
+      );
+    }
   }
 
   /**
@@ -193,16 +261,7 @@ export class TagPickerComponent implements OnInit, OnChanges {
       groupIndex < this.currentStartIndex ||
       groupIndex >= this.currentStartIndex + this.maxVisibleTabs
     ) {
-      // If clicking on a group that's not visible, center it in the view
-      this.currentStartIndex = Math.max(
-        0,
-        groupIndex - Math.floor(this.maxVisibleTabs / 2),
-      );
-      this.currentStartIndex = Math.min(
-        this.currentStartIndex,
-        this.groups.length - this.maxVisibleTabs,
-      );
-
+      this.adjustPaginationForGroup(groupIndex);
       this.updateVisibleGroups();
     } else {
       // Handle edge cases for smooth pagination
@@ -237,6 +296,7 @@ export class TagPickerComponent implements OnInit, OnChanges {
     const tagIndex = this.internalSelectedTags.findIndex(
       (t) => t.id === tag.id,
     );
+    let wasAdded = false;
 
     if (tagIndex > -1) {
       // Tag is selected - remove it if replacement is allowed
@@ -245,19 +305,18 @@ export class TagPickerComponent implements OnInit, OnChanges {
         this.tagRemoved.emit(removedTag);
       }
     } else {
-      // Tag is not selected - add it
+      wasAdded = true;
+
       if (!this.canMultiSelect) {
-        // Remove other tags from the same group
+        // Remove existing tags from the SAME GROUP as the new tag
+        const newTagGroupId = tag.group;
         const tagsToRemove = this.internalSelectedTags.filter(
-          (t) => t.group === this.currentGroup?.id,
+          (t) => t.group === newTagGroupId,
         );
 
-        tagsToRemove.forEach((removedTag) => {
-          this.tagRemoved.emit(removedTag);
-        });
-
+        tagsToRemove.forEach((t) => this.tagRemoved.emit(t));
         this.internalSelectedTags = this.internalSelectedTags.filter(
-          (t) => t.group !== this.currentGroup?.id,
+          (t) => t.group !== newTagGroupId,
         );
       }
 
@@ -273,9 +332,11 @@ export class TagPickerComponent implements OnInit, OnChanges {
     this.checkAndEmitAllGroupsProcessed();
 
     // Auto-advance to next group if enabled
-    if (this.autoAdvanceGroups) {
+    if (this.autoAdvanceGroups && wasAdded) {
       this.switchToNextGroup();
     }
+
+    // FIXED: Update selectedTags input to keep in sync
     this.selectedTags = this.internalSelectedTags.map(
       ({ id, name, group }) => ({ id, name, group }),
     );
@@ -288,19 +349,16 @@ export class TagPickerComponent implements OnInit, OnChanges {
     if (!this.currentGroup) return;
 
     const currentIndex = this.groups.indexOf(this.currentGroup);
-    const nextIndex = (currentIndex + 1) % this.groups.length;
-    this.currentGroup = this.groups[nextIndex];
+    const nextIndex = currentIndex + 1;
 
-    // Update visible groups if needed
-    if (nextIndex >= this.currentStartIndex + this.maxVisibleTabs) {
-      this.currentStartIndex = Math.min(
-        nextIndex,
-        this.groups.length - this.maxVisibleTabs,
-      );
-      this.updateVisibleGroups();
-    } else if (nextIndex < this.currentStartIndex) {
-      this.currentStartIndex = nextIndex;
-      this.updateVisibleGroups();
+    if (nextIndex < this.groups.length) {
+      this.currentGroup = this.groups[nextIndex];
+
+      // Simple pagination - just move forward when needed
+      if (nextIndex >= this.currentStartIndex + this.maxVisibleTabs) {
+        this.currentStartIndex = nextIndex - this.maxVisibleTabs + 1;
+        this.updateVisibleGroups();
+      }
     }
   }
 
@@ -388,6 +446,7 @@ export class TagPickerComponent implements OnInit, OnChanges {
     });
 
     this.selectionChanged.emit([]);
+    this.checkAndEmitAllGroupsProcessed();
   }
 
   /**

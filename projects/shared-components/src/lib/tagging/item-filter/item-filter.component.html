@@ -1,1 +1,25 @@
-<p>item-filter works!</p>
+<!-- item-filter.component.html -->
+<div class="p-4 bg-white rounded-lg shadow">
+  <label class="block mb-2 font-semibold">Filter by tags</label>
+  <select
+    multiple
+    [(ngModel)]="selectedTagIds"
+    (ngModelChange)="apply()"
+    class="select select-bordered w-full h-32"
+  >
+    <option *ngFor="let tag of availableTags" [value]="tag.id">
+      {{ tag.name }}
+    </option>
+  </select>
+
+  <ul *ngIf="results.length" class="mt-4 list-disc list-inside">
+    <li *ngFor="let item of results" class="py-1">
+      {{ item.name }}
+      <span class="text-sm text-gray-500">({{ item.tags.length }})</span>
+    </li>
+  </ul>
+
+  <p *ngIf="!results.length" class="mt-4 text-center text-gray-500">
+    No items match the selected tags.
+  </p>
+</div>

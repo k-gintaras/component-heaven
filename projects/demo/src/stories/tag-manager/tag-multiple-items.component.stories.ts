@@ -60,13 +60,12 @@ type Story = StoryObj<TagMultipleItemsComponent>;
 
 export const Default: Story = {
   args: {
-    items,
+    items: getTestItems(5, 0, tagGroups), // TODO: FIX: if this is not passed, we have weird behaviour where tabs that are shown active are the first tabs with selected tags
     tagGroups,
     canMultiSelect: false,
     canReplace: true,
     maxVisibleTabs: 4,
     autoAdvanceGroups: true,
-    autoAdvanceItems: false,
   },
   parameters: {
     docs: {
@@ -84,7 +83,6 @@ export const AutoAdvanceWorkflow: Story = {
     tagGroups,
     canMultiSelect: false,
     autoAdvanceGroups: true,
-    autoAdvanceItems: true, // Auto-advance to next item when current is complete
   },
   parameters: {
     docs: {
@@ -103,7 +101,6 @@ export const SingleItemMode: Story = {
       createPresetTagGroups('status'),
     ),
     createSingleItemMode: true,
-    singleItemName: 'My Document',
     canMultiSelect: false,
     autoAdvanceGroups: true,
   },
@@ -160,7 +157,6 @@ export const ProjectManagementScenario: Story = {
     ],
     canMultiSelect: false,
     autoAdvanceGroups: true,
-    autoAdvanceItems: false,
   },
   parameters: {
     docs: {
@@ -205,7 +201,6 @@ export const FileOrganizationScenario: Story = {
     ],
     canMultiSelect: false,
     autoAdvanceGroups: true,
-    autoAdvanceItems: true,
     maxVisibleTabs: 3,
   },
   parameters: {
@@ -263,15 +258,15 @@ export const PreTaggedItems: Story = {
         id: '1',
         name: 'Already Tagged Item',
         tags: [
-          { id: '1', group: '11', name: 'Badge: 1' },
-          { id: '5', group: '21', name: 'Badge: 2' },
+          { id: '1', group: '1', name: 'Badge: 1' }, // Fixed: '1' not '11'
+          { id: '5', group: '2', name: 'Badge: 2' }, // Fixed: '2' not '21'
         ],
       },
       { id: '2', name: 'Untagged Item', tags: [] },
       {
         id: '3',
         name: 'Partially Tagged',
-        tags: [{ id: '2', group: '11', name: 'Badge: 2' }],
+        tags: [{ id: '2', group: '1', name: 'Badge: 2' }], // Fixed: '1' not '11'
       },
     ],
     tagGroups: getTestTagMatrix(3, 4),

@@ -15,6 +15,13 @@ export * from './lib/tagging/tag.service';
 export * from './lib/tagging/tag-picker/tag-picker.component';
 export * from './lib/tagging/tag-multiple-items/tag-multiple-items.component';
 
+// tools
+export * from './lib/tagging/item-filter/item-filter.component';
+export * from './lib/tagging/item-sorter/item-sorter.component';
+export * from './lib/tagging/preset-manager/preset-manager.component';
+export * from './lib/tagging/preset.service';
+export * from './lib/tagging/tag-group-presets';
+
 export {
   createPresetTagGroups as createPreset,
   getAvailablePresets as getPresets,
