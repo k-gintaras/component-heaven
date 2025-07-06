@@ -36,6 +36,9 @@ export class TagPickerComponent implements OnInit, OnChanges {
   @Input() maxVisibleTabs = 5;
   @Input() autoAdvanceGroups = true; // Auto-advance to next group after selection
 
+  // === NEW: STATEFUL MODE ===
+  @Input() statefulMode = false; // When true, don't reinitialize on selectedTags changes
+
   // === OUTPUTS ===
   @Output() tagAdded = new EventEmitter<Tag>();
   @Output() tagRemoved = new EventEmitter<Tag>();
@@ -55,20 +58,69 @@ export class TagPickerComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (
-      changes['customTagGroups'] ||
-      changes['selectedTags'] ||
-      changes['palette']
-    ) {
+    const shouldReinitialize = this.shouldReinitializeComponent(changes);
+
+    if (shouldReinitialize) {
       this.initializeComponent();
+    } else if (changes['selectedTags'] && this.statefulMode) {
+      // In stateful mode, just sync the selected tags without full reinitialization
+      this.syncSelectedTagsOnly();
     }
+  }
+
+  private isLastGroup(): boolean {
+    if (!this.currentGroup) return false;
+    const currentIndex = this.groups.indexOf(this.currentGroup);
+    return currentIndex === this.groups.length - 1;
+  }
+
+  /**
+   * Determine if we should reinitialize the entire component
+   */
+  private shouldReinitializeComponent(changes: SimpleChanges): boolean {
+    // Always reinitialize on these changes
+    if (changes['customTagGroups'] || changes['palette'] || changes['key']) {
+      return true;
+    }
+
+    // In stateful mode, don't reinitialize for selectedTags changes
+    if (changes['selectedTags'] && this.statefulMode) {
+      return false;
+    }
+
+    // In non-stateful mode, reinitialize for selectedTags changes
+    if (changes['selectedTags'] && !this.statefulMode) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Sync only the selected tags without reinitializing groups or colors
+   */
+  private syncSelectedTagsOnly(): void {
+    this.internalSelectedTags = this.selectedTags.map((tag) => {
+      // Find the full extended tag from our groups
+      const group = this.groups.find((g) => g.id === tag.group);
+      const fullTag = group?.tags.find((t) => t.id === tag.id);
+
+      if (fullTag) {
+        return { ...fullTag };
+      } else {
+        // Fallback for tags not in our groups
+        return { ...tag, color: '', backgroundColor: '' };
+      }
+    });
+
+    this.checkAndEmitAllGroupsProcessed();
   }
 
   /**
    * Initialize the component with current inputs
    */
   private initializeComponent(): void {
-    // RESET ALL STATE - this was missing!
+    // RESET ALL STATE
     this.resetComponentState();
 
     // Use input data or fall back to test data
@@ -86,7 +138,7 @@ export class TagPickerComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Reset all internal state - FIXED: This was the missing piece
+   * Reset all internal state
    */
   private resetComponentState(): void {
     this.currentStartIndex = 0;
@@ -335,11 +387,6 @@ export class TagPickerComponent implements OnInit, OnChanges {
     if (this.autoAdvanceGroups && wasAdded) {
       this.switchToNextGroup();
     }
-
-    // FIXED: Update selectedTags input to keep in sync
-    this.selectedTags = this.internalSelectedTags.map(
-      ({ id, name, group }) => ({ id, name, group }),
-    );
   }
 
   /**
@@ -400,42 +447,29 @@ export class TagPickerComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Get processing statistics
+   * PUBLIC: Add a tag programmatically (useful for external control)
    */
-  getProcessingStats(): {
-    totalGroups: number;
-    processedGroups: number;
-    unprocessedGroups: number;
-    completionPercentage: number;
-    isComplete: boolean;
-  } {
-    const totalGroups = this.groups.length;
-    const processedGroups = this.groups.filter((group) =>
-      this.isGroupProcessed(group),
-    ).length;
-    const unprocessedGroups = totalGroups - processedGroups;
-    const completionPercentage =
-      totalGroups > 0 ? Math.round((processedGroups / totalGroups) * 100) : 0;
-    const isComplete = this.areAllGroupsProcessed();
+  addTag(tag: Tag): void {
+    const group = this.groups.find((g) => g.id === tag.group);
+    const fullTag = group?.tags.find((t) => t.id === tag.id);
 
-    return {
-      totalGroups,
-      processedGroups,
-      unprocessedGroups,
-      completionPercentage,
-      isComplete,
-    };
+    if (fullTag && !this.isTagSelected(fullTag)) {
+      this.toggleTag(fullTag);
+    }
   }
 
   /**
-   * Get unprocessed groups (groups with no selected tags)
+   * PUBLIC: Remove a tag programmatically
    */
-  getUnprocessedGroups(): ExtendedTagGroup[] {
-    return this.groups.filter((group) => !this.isGroupProcessed(group));
+  removeTag(tagId: string): void {
+    const tagToRemove = this.internalSelectedTags.find((t) => t.id === tagId);
+    if (tagToRemove) {
+      this.toggleTag(tagToRemove);
+    }
   }
 
   /**
-   * Programmatically clear all selections
+   * PUBLIC: Clear all selections
    */
   clearAllTags(): void {
     const tagsToRemove = [...this.internalSelectedTags];
@@ -447,17 +481,5 @@ export class TagPickerComponent implements OnInit, OnChanges {
 
     this.selectionChanged.emit([]);
     this.checkAndEmitAllGroupsProcessed();
-  }
-
-  /**
-   * Programmatically add a tag
-   */
-  addTag(tag: Tag): void {
-    const group = this.groups.find((g) => g.id === tag.group);
-    const fullTag = group?.tags.find((t) => t.id === tag.id);
-
-    if (fullTag && !this.isTagSelected(fullTag)) {
-      this.toggleTag(fullTag);
-    }
   }
 }

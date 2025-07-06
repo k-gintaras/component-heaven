@@ -33,11 +33,14 @@
   </div>
 
   <!-- Selected Tags Display -->
-  <div *ngIf="selectedTags.length > 0" class="mt-2">
+  <div class="mt-2">
     <div class="flex flex-wrap gap-1 justify-end">
+      <div class="badge badge-xs invisible">#filler</div>
+
       <div *ngFor="let tag of internalSelectedTags" class="badge badge-xs">
         #{{ tag.name }}
       </div>
+      <!-- invisible keeps the badge’s box but hides its content -->
     </div>
   </div>
 </div>

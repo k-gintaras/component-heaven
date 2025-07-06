@@ -3,44 +3,40 @@
   <div class="flex items-center justify-between mb-4">
     <!-- Previous Button -->
     <button
-      [disabled]="!canNavigatePrevious()"
-      (click)="moveToPreviousItem()"
+      [disabled]="!canNavigatePrevious"
+      (click)="goToPreviousItem()"
       class="p-1 rounded hover:bg-gray-200 disabled:hover:bg-transparent disabled:cursor-not-allowed"
-      [title]="canNavigatePrevious() ? 'Previous item' : 'No previous item'"
     >
       <mat-icon
         [ngClass]="{
-          'text-gray-400': !canNavigatePrevious(),
-          'text-gray-800': canNavigatePrevious(),
+          'text-gray-400': !canNavigatePrevious,
+          'text-gray-800': canNavigatePrevious,
         }"
       >
         chevron_left
       </mat-icon>
     </button>
 
-    <!-- Title with Completion Indicator -->
+    <!-- Title -->
     <div class="text-center">
-      <!-- <h2 class="text-lg font-bold text-gray-800 truncate">
-        <span *ngIf="hasItems()">Tagging: {{ getCurrentItemName() }}</span>
-        <span *ngIf="!hasItems()" class="text-gray-500">No Items to Tag</span>
-      </h2> -->
-      <!-- In your template’s header -->
-      <h2 class="text-lg font-bold truncate" [style.color]="getTitleColor()">
-        Tagging: {{ getCurrentItemName() }}
+      <h2
+        class="text-lg font-bold truncate"
+        [style.color]="isItemCompleted(currentItem.id) ? 'inherit' : 'green'"
+      >
+        Tagging: {{ currentItem?.name || "No item selected" }}
       </h2>
     </div>
 
     <!-- Next Button -->
     <button
-      [disabled]="!canNavigateNext()"
-      (click)="moveToNextItem()"
+      [disabled]="!canNavigateNext"
+      (click)="goToNextItem()"
       class="p-1 rounded hover:bg-gray-200 disabled:hover:bg-transparent disabled:cursor-not-allowed"
-      [title]="canNavigateNext() ? 'Next item' : 'No next item'"
     >
       <mat-icon
         [ngClass]="{
-          'text-gray-400': !canNavigateNext(),
-          'text-gray-800': canNavigateNext(),
+          'text-gray-400': !canNavigateNext,
+          'text-gray-800': canNavigateNext,
         }"
       >
         chevron_right
@@ -48,54 +44,40 @@
     </button>
   </div>
 
-  <!-- Tagging Component - only show if we have items and tag groups -->
-  <div *ngIf="hasItems() && tagGroups.length > 0">
+  <!-- Tag Picker -->
+  <div *ngIf="currentItem && tagGroups.length > 0">
     <app-tag-picker
+      [key]="currentItem.id"
       [customTagGroups]="tagGroups"
-      [selectedTags]="getCurrentItemTags()"
-      [canMultiSelect]="canMultiSelect"
-      [canReplace]="canReplace"
+      [selectedTags]="currentItemTags"
+      [canMultiSelect]="allowMultiplePerGroup"
+      [canReplace]="true"
       [maxVisibleTabs]="maxVisibleTabs"
       [autoAdvanceGroups]="autoAdvanceGroups"
-      (tagRemoved)="onTagRemoved($event)"
-      (tagSelectionChanged)="onTagSelectionChanged($event)"
-      (taggingCompleted)="onItemTaggingCompleted($event)"
-    >
-    </app-tag-picker>
-    <!-- <app-tag-picker-matrix
-      [customTagGroups]="tagGroups"
-      [selectedTags]="getCurrentItemTags()"
-      [canMultiSelect]="canMultiSelect"
-      [canReplace]="canReplace"
+      [statefulMode]="true"
       (tagAdded)="onTagAdded($event)"
       (tagRemoved)="onTagRemoved($event)"
-      (tagSelectionChanged)="onTagSelectionChanged($event)"
-      (taggingCompleted)="onItemTaggingCompleted($event)"
+      (allGroupsProcessed)="onItemCompleted($event)"
     >
-    </app-tag-picker-matrix> -->
+    </app-tag-picker>
   </div>
 
   <!-- Empty States -->
-  <div
-    *ngIf="!hasItems() && !createSingleItemMode"
-    class="text-center py-8 text-gray-500"
-  >
+  <div *ngIf="!currentItem" class="text-center py-8 text-gray-500">
     <mat-icon class="text-4xl mb-2">label_off</mat-icon>
-    <p class="text-lg">No items to tag</p>
-    <p class="text-sm">Add some items to start tagging</p>
+    <p class="text-lg">No item selected</p>
   </div>
 
   <div
-    *ngIf="hasItems() && tagGroups.length === 0"
+    *ngIf="currentItem && tagGroups.length === 0"
     class="text-center py-8 text-gray-500"
   >
     <mat-icon class="text-4xl mb-2">category</mat-icon>
     <p class="text-lg">No tag groups available</p>
-    <p class="text-sm">Add some tag groups to start tagging</p>
   </div>
 
   <!-- Status -->
   <div class="mt-4 flex justify-between items-center text-sm text-gray-600">
-    <span>{{ getItemStatus() }}</span>
+    <span>{{ getStatusText() }}</span>
   </div>
 </div>
