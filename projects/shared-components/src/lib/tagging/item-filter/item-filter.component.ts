@@ -7,10 +7,12 @@ import {
 } from '@angular/core';
 import { Tag, TagItem } from '../tag.interface';
 import { TagService } from '../tag.service';
+import { FormsModule } from '@angular/forms';
+import { NgFor, NgIf } from '@angular/common';
 
 @Component({
   selector: 'lib-item-filter',
-  imports: [],
+  imports: [FormsModule, NgFor, NgIf],
   templateUrl: './item-filter.component.html',
   styleUrl: './item-filter.component.css',
 })

@@ -11,6 +11,7 @@ export * from './lib/tagging/tag.module';
 export * from './lib/tagging/tag.interface';
 export * from './lib/tagging/test-data';
 export * from './lib/tagging/tag.service';
+export * from './lib/tagging/item-tagging.service';
 
 export * from './lib/tagging/tag-picker/tag-picker.component';
 export * from './lib/tagging/tag-multiple-items/tag-multiple-items.component';

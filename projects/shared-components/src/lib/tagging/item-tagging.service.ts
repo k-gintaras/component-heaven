@@ -39,21 +39,27 @@ export class ItemTaggingService {
     config?: Partial<TaggingConfig>,
   ): void {
     // Deep clone items to prevent external mutations
-    const clonedItems = items.map((item) => ({
-      ...item,
-      tags: [...item.tags.map((tag) => ({ ...tag }))],
-    }));
+    // const clonedItems = items.map((item) => ({
+    //   ...item,
+    //   tags: [...item.tags.map((tag) => ({ ...tag }))],
+    // }));
+    //
 
-    this.itemsSubject.next(clonedItems);
+    // this.itemsSubject.next(clonedItems);
+    this.itemsSubject.next(items);
     this.tagGroupsSubject.next([...tagGroups]);
 
     if (config) {
       this.updateConfig(config);
     }
 
+    // // Set first item as current if items exist
+    // if (clonedItems.length > 0) {
+    //   this.setCurrentItem(clonedItems[0].id);
+    // }
     // Set first item as current if items exist
-    if (clonedItems.length > 0) {
-      this.setCurrentItem(clonedItems[0].id);
+    if (items.length > 0) {
+      this.setCurrentItem(items[0].id);
     }
   }
 

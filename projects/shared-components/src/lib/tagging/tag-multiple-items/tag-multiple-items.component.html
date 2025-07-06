@@ -21,7 +21,7 @@
     <div class="text-center">
       <h2
         class="text-lg font-bold truncate"
-        [style.color]="isItemCompleted(currentItem.id) ? 'inherit' : 'green'"
+        [style.color]="isItemCompleted(currentItem) ? 'inherit' : 'green'"
       >
         Tagging: {{ currentItem?.name || "No item selected" }}
       </h2>

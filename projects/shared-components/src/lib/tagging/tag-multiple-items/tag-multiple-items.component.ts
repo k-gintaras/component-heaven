@@ -16,6 +16,7 @@ import { TagPickerComponent } from '../tag-picker/tag-picker.component';
 import { TagPickerMatrixComponent } from '../tag-picker-matrix/tag-picker-matrix.component';
 import { Subject, takeUntil, combineLatest } from 'rxjs';
 import { ItemTaggingService, TaggingConfig } from '../item-tagging.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   standalone: true,
@@ -23,6 +24,7 @@ import { ItemTaggingService, TaggingConfig } from '../item-tagging.service';
   templateUrl: './tag-multiple-items.component.html',
   styleUrls: ['./tag-multiple-items.component.css'],
   imports: [
+    FormsModule,
     TagPickerComponent,
     TagPickerMatrixComponent,
     MatIcon,
@@ -70,7 +72,6 @@ export class TagMultipleItemsComponent implements OnInit {
   canNavigateNext = false;
   canNavigatePrevious = false;
   completionStats: any = null;
-
 
   private destroy$ = new Subject<void>();
 
@@ -153,7 +154,7 @@ export class TagMultipleItemsComponent implements OnInit {
       const index = this.taggingService.getCurrentItemIndex();
       this.tagAdded.emit({ tag, item: this.currentItem, itemIndex: index });
 
-     // this.checkItemCompletion();
+      // this.checkItemCompletion();
     }
   }
 
@@ -186,8 +187,9 @@ export class TagMultipleItemsComponent implements OnInit {
     }
   }
 
-  isItemCompleted(itemId: string): boolean {
-    return this.taggingService.isItemComplete(itemId);
+  isItemCompleted(item: TagItem | null): boolean {
+    if (!item) return false;
+    return this.taggingService.isItemComplete(item.id);
   }
 
   // === NAVIGATION ===
