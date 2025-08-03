@@ -51,7 +51,6 @@ export class ColorSchemeSetsService {
       .start(cubeHelixStart)
       .rotations(cubeHelixRotations)
       .gamma(cubeHelixGamma)
-      .hue([cubeHelixContrast, cubeHelixHue])
       .lightness([cubeHelixContrast, cubeHelixBrightness])
       .scale()
       .correctLightness()

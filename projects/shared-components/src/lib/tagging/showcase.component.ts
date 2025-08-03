@@ -113,8 +113,7 @@ import { TagGroup, TagItem } from './tag.interface';
           <app-tag-multiple-items
             [items]="currentItems"
             [tagGroups]="currentTagGroups"
-            [canMultiSelect]="false"
-            [canReplace]="true"
+            [allowMultiplePerGroup]="false"
             [maxVisibleTabs]="4"
             (tagAdded)="onTagAdded($event)"
             (tagRemoved)="onTagRemoved($event)"

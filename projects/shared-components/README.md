@@ -161,6 +161,149 @@ export class ProjectManagerComponent {
 }
 ```
 
+## 🔄 Tag Items & Flexible Setup
+
+For advanced scenarios, you can tag any object type by converting it to a `TagItem` and auto-generating your tag groups:
+
+```typescript
+import {
+  convertManyToTagItems,
+  autoGenerateTagGroups,
+  prepareForDatabase,
+  createFlexibleTaggingSetup
+} from "@ubaby/componentator";
+
+// 1) Convert your data
+const products = [
+  { id: '1', name: 'Widget', category: 'tools' },
+  { id: '2', name: 'Gadget', category: 'electronics' }
+];
+const items = convertManyToTagItems(products);
+
+// 2) Generate groups from existing tags
+const tagGroups = autoGenerateTagGroups(items);
+
+// 3) Render batch tagging:
+// <app-tag-multiple-items [items]="items" [tagGroups]="tagGroups"></app-tag-multiple-items>
+
+// 4) After tagging, prepare for DB
+const dbPayload = prepareForDatabase(items.filter(i => i.tags.length));
+``` 
+
+You can also run everything in one step:
+
+```typescript
+import { createFlexibleTaggingSetup } from "@ubaby/componentator";
+
+const data = [ /* any objects */ ];
+const { items, tagGroups } = createFlexibleTaggingSetup(data, { idProperty: 'id', nameProperty: 'name' });
+```
+
+---
+
+## 🏷️ Simple Tag Picker
+
+When you only need to select tags for a single item, use `TagPicker`:
+
+```typescript
+import { TagPicker } from "@ubaby/componentator";
+
+@Component({
+  imports: [TagPicker],
+  template: `
+    <tag-picker
+      [customTagGroups]="colorGroups"
+      (tagAdded)="onTagAdded($event)"
+    ></tag-picker>
+  `
+})
+export class MyComponent {
+  colorGroups = createPreset("colors");
+  onTagAdded(tag) { console.log('Picked:', tag); }
+}
+```
+
+`TagPicker` is ideal for quick, single-item workflows (forms, dialogs, filters).
+
+---
+
+## 🧩 Tag Picker Matrix
+
+For a compact, matrix-style selection UI, use `TagPickerMatrix`:
+
+```typescript
+import { TagPickerMatrixComponent } from "@ubaby/componentator";
+
+@Component({
+  imports: [TagPickerMatrixComponent],
+  template: `
+    <app-tag-picker-matrix
+      [customTagGroups]="statusGroups"
+      [selectedTags]="initialTags"
+      (selectionChanged)="onTagsChanged($event)"
+    ></app-tag-picker-matrix>
+  `
+})
+export class GridComponent {
+  statusGroups = createPreset("status");
+  initialTags = [];
+  onTagsChanged(tags) { console.log('Matrix selection:', tags); }
+}
+```
+
+This component displays groups in a grid and is perfect for dashboards, filters, or data-dense interfaces.
+
+## 🔄 Passing Pre-Existing Tags
+
+If your items already have tags saved (for example, loaded from a database), simply include them in each `TagItem.tags` array before passing to the component:
+
+```typescript
+// In your component.ts
+import { TagItem, TagGroup, createPreset } from "@ubaby/componentator";
+
+// Pre-existing tags for two tasks
+const items: TagItem[] = [
+  {
+    id: '1',
+    name: 'Fix login bug',
+    tags: [ { id: 'high', group: 'priority', name: 'High' } ]
+  },
+  {
+    id: '2',
+    name: 'Write docs',
+    tags: [ { id: 'medium', group: 'priority', name: 'Medium' } ]
+  }
+];
+
+const tagGroups: TagGroup[] = createPreset('priority');
+```
+
+Then in your template, the component will render those tags as already selected:
+
+```html
+<tag-multiple-items
+  [items]="items"
+  [tagGroups]="tagGroups"
+  [allowMultiplePerGroup]="true"
+  [maxVisibleTabs]="3"
+></tag-multiple-items>
+```
+
+For the single-item `<tag-picker>`, use the `selectedTags` input to pre-select:
+
+```typescript
+// component.ts
+colorGroups = createPreset('colors');
+selected = [ { id: 'red', group: 'colors', name: 'Red' } ];
+```
+
+```html
+<tag-picker
+  [customTagGroups]="colorGroups"
+  [selectedTags]="selected"
+></tag-picker>
+```
+
 ## 🎛️ API Reference
 
 ### Components

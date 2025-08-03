@@ -1,6 +1,6 @@
 {
   "name": "@ubaby/componentator",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A collection of useful Angular components that don't suck",
   "keywords": [
     "angular",

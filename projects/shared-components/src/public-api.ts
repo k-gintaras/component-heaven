@@ -37,3 +37,19 @@ export {
   createTagGroup,
   createTaggedItem,
 } from './lib/tagging/tag-helpers';
+
+export {
+  convertToTagItem,
+  convertManyToTagItems,
+  autoGenerateTagGroups,
+  createTagGroupsFromTags,
+  createFlexibleTaggingSetup,
+  prepareForDatabase,
+  smartCreateTag,
+  createQuickTag,
+  deduplicateTags,
+  type TaggableObject,
+  type ConversionConfig,
+} from './lib/tagging/flexible-tagging-helpers';
+
+export { FlexibleTaggingDemoComponent } from './lib/tagging/flexible-tagging-demo/flexible-tagging-demo.component';
